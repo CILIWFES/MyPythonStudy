@@ -1,4 +1,11 @@
 import datetime
+import sys
+import os
+curPath = os.path.abspath(os.path.dirname(__file__))
+rootPath = os.path.split(curPath)[0]
+sys.path.append(rootPath)
+
+
 print("Python学习测试程序")
 
 print("""运行开始
@@ -12,7 +19,7 @@ startTime=datetime.datetime.now()#起始时间
 
 #import  dataStruct.tuple.tuple
 # import  dataStruct.string.String
-# import grammar.grammar
+import grammar.grammar
 ###################################################################################################################
 endTime=datetime.datetime.now()#终止时间
 print("""\n-------------------------------------------------------------------------------------
