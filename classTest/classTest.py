@@ -18,7 +18,6 @@ class testClass:
 # print(b())
 
 class testClass2():
-class testClass3(testClass2,testClass):#优先
     def __init__(self):
         self.age=5
         self.name=5
@@ -28,7 +27,8 @@ class testClass3(testClass2,testClass):#优先
     def __add__(self, other):
         return self.age+other.age
 
-从左到右为标准
+
+class testClass3(testClass2,testClass):#优先从左到右为标准
     def __init__(self,age):
         testClass.__init__(self)
         testClass2.__init__(self)
