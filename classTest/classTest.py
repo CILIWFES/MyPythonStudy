@@ -99,3 +99,7 @@ print('getattr',getattr(attrTest1,'param2'))#删除后
 
 
 
+
+
+
+
