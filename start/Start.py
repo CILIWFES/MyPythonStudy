@@ -21,7 +21,9 @@ startTime=datetime.datetime.now()#起始时间
 # import  dataStruct.string.String
 # import grammar.grammar
 # import classTest.classTest
-import Thread.thread
+# import Thread.thread
+import ioTest.io
+
 ###################################################################################################################
 endTime=datetime.datetime.now()#终止时间
 print("""\n-------------------------------------------------------------------------------------

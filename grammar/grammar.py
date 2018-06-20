@@ -15,3 +15,17 @@ def function(arr):
 a=function("dassadsas")
 
 print(a)
+
+
+import time
+import threading
+class test(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self);
+    def run(self):
+        i=0
+        while True:
+            print("11")
+            time.sleep(0.5)
+            i+=1
+test().start()
