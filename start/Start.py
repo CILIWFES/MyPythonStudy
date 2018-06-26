@@ -20,9 +20,9 @@ startTime=datetime.datetime.now()#起始时间
 #import  dataStruct.tuple.tuple
 # import  dataStruct.string.String
 # import grammar.grammar
-# import classTest.classTest
+import classTest.classTest
 # import Thread.thread
-import ioTest.io
+# import ioTest.io
 
 ###################################################################################################################
 endTime=datetime.datetime.now()#终止时间

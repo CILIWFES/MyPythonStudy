@@ -33,4 +33,3 @@ test=threadTest(100,0.02)#表示秒
 test.start()
 time.sleep(0.2)
 test.stop()
-a=5
