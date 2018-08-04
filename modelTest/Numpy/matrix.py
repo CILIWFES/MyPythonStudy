@@ -36,15 +36,11 @@ print(10 * myRand)
 
 # 矩阵求和(逐个列向量求和)
 
-print(sum(myRand))  # <class 'numpy.ndarray'>
-print(type(sum(myRand)))  # <class 'numpy.ndarray'>
+print(np.sum(myRand))
 
-print(sum(myMatrix))
-print(type(sum(myMatrix)))  # <class 'numpy.matrixlib.defmatrix.matrix'>
-print(sum(sum(myMatrix).tolist()[0]))
+print(np.sum(myMatrix))
 
-print(sum(myEye))  # 列向量求和变为1xn
-print(sum(sum(myEye)))  # 才是所有求和
+print(np.sum(myEye))
 
 # 矩阵乘积
 myMatrix1 = np.eye(5)
@@ -110,3 +106,24 @@ print(myMatrix)  # 删除前的矩阵
 
 tempMatrix = np.delete(myMatrix, 1, 1)  # 删除myMatrix的第三列
 print(tempMatrix)
+
+
+#矩阵的行列式
+print(myMatrix)
+print(np.linalg.det(myMatrix))
+
+#矩阵的逆矩阵
+print(np.linalg.inv(myMatrix))
+print(myMatrix*np.linalg.inv(myMatrix))
+
+#矩阵的对称
+print(myMatrix)
+print(myMatrix*myMatrix.T)
+
+#矩阵的秩
+print(np.linalg.matrix_rank(myMatrix))
+
+#可逆矩阵求解
+y=[0,0,0,0,5]
+print(np.linalg.solve(myMatrix,y))
+print(sum(np.multiply(myMatrix,np.linalg.solve(myMatrix,y)).T))
