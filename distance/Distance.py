@@ -96,11 +96,25 @@ print(CorrelationCoefficient(matrix1, matrix2))
 
 # 马氏距离
 def MahalanobisDistance(dataSet1, dataSet2):
+    matrix=np.append(dataSet1, dataSet2, 0)
     # 求协方差的逆矩阵
-    covinv = np.linalg.inv(np.cov(np.append(dataSet1, dataSet2, 0)))
-    x1_x2 = dataSet1 - dataSet2
-    distma = np.sqrt(x1_x2.T * covinv * x1_x2)
+    covinv = np.linalg.inv(np.cov(matrix))
+    x1_x2 = matrix.T[0] - matrix.T[1]
+    distma = np.sqrt(np.dot(np.dot(x1_x2,covinv), x1_x2.T))
     return distma
 
-print(ManhattonDistance(matrix1, matrix2))
+matrix3=np.mat([88.5, 96.8, 104.1, 111.3, 117.7, 124.0, 130.0, 135.4, 140.2, 145.3, 151.9, 159.5, 165.9, 169.8, 171.6, 172.3, 172.7])
+matrix4=np.mat([12.54, 14.65,16.64,18.98,21.26,24.06,27.33,30.46,33.74,37.69,42.49,48.08,53.37,57.08,59.35,60.68,61.40])
+print(MahalanobisDistance(matrix3, matrix4))
+print(np.cov(np.append(matrix3, matrix4, 0)))
+
+
+matrix3=np.mat([88.5, 96.8, 104.1, 111.3, 117.7, 124.0, 130.0, 135.4, 140.2, 145.3, 151.9, 159.5, 165.9, 169.8, 171.6, 172.3, 172.7])
+matrix4=np.mat([12.54, 14.65,16.64,18.98,21.26,24.06,27.33,30.46,33.74,37.69,42.49,48.08,53.37,57.08,59.35,60.68,61.40])
+avgX1=np.sum(matrix3)/np.shape(matrix3)[1]
+
+avgX2=np.sum(matrix4)/np.shape(matrix4)[1]
+matrix=np.append(matrix3-avgX1, matrix4-avgX2, 0)
+
+print((matrix*matrix.T)/(np.shape(matrix)[1]-1))
 

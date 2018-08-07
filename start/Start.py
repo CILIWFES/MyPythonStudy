@@ -27,7 +27,7 @@ startTime=datetime.datetime.now()#起始时间
 # import modelTest.allTest
 # import modelTest.Numpy.matrix
 
-# import distance.Distance
+import distance.Distance
 
 ###################################################################################################################
 endTime=datetime.datetime.now()#终止时间
