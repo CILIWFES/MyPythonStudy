@@ -83,7 +83,7 @@ def CorrelationCoefficient(dataSet1, dataSet2):
     dv1 = np.std(dataSet1)
     dv2 = np.std(dataSet2)
 
-    print("协方差=",np.cov(dataSet1-avg1,dataSet2-avg2))
+    print("协方差=", np.cov(dataSet1 - avg1, dataSet2 - avg2))
 
     # 协方差/两个标准差的乘积
     p = np.mean(np.multiply(dataSet1 - avg1, dataSet2 - avg2)) / (dv1 * dv2)
@@ -94,27 +94,64 @@ def CorrelationCoefficient(dataSet1, dataSet2):
 print(CorrelationCoefficient(matrix1, matrix2))
 
 
+def myCov(dataSet1, dataSet2):
+    # print(np.cov(np.append(dataSet1, dataSet2, 0)))
+    dataSet1 = np.mat(
+        [88.5, 96.8, 104.1, 111.3, 117.7, 124.0, 130.0, 135.4, 140.2, 145.3, 151.9, 159.5, 165.9, 169.8, 171.6, 172.3,
+         172.7])
+    dataSet2 = np.mat(
+        [12.54, 14.65, 16.64, 18.98, 21.26, 24.06, 27.33, 30.46, 33.74, 37.69, 42.49, 48.08, 53.37, 57.08, 59.35, 60.68,
+         61.40])
+    avgX1 = dataSet1.mean()
+
+    avgX2 = dataSet2.mean()
+    matrix = np.append(dataSet1 - avgX1, dataSet2 - avgX2, 0)
+
+    return (matrix * matrix.T) / (np.shape(matrix)[1] - 1)
+
+
+print(myCov(None, None))
+
+
 # 马氏距离
 def MahalanobisDistance(dataSet1, dataSet2):
-    matrix=np.append(dataSet1, dataSet2, 0)
+    matrix = np.append(dataSet1, dataSet2, 0)
     # 求协方差的逆矩阵
     covinv = np.linalg.inv(np.cov(matrix))
-    x1_x2 = matrix.T[0] - matrix.T[1]
-    distma = np.sqrt(np.dot(np.dot(x1_x2,covinv), x1_x2.T))
-    return distma
 
-matrix3=np.mat([88.5, 96.8, 104.1, 111.3, 117.7, 124.0, 130.0, 135.4, 140.2, 145.3, 151.9, 159.5, 165.9, 169.8, 171.6, 172.3, 172.7])
-matrix4=np.mat([12.54, 14.65,16.64,18.98,21.26,24.06,27.33,30.46,33.74,37.69,42.49,48.08,53.37,57.08,59.35,60.68,61.40])
-print(MahalanobisDistance(matrix3, matrix4))
-print(np.cov(np.append(matrix3, matrix4, 0)))
+    def MahalanobisClosure(plot1, plot2):  # 返回闭包增加灵活性
+        x1_x2 = plot1 - plot2
+        distma = np.sqrt(x1_x2 * covinv * x1_x2.T)
+        return distma
+
+    return MahalanobisClosure
 
 
-matrix3=np.mat([88.5, 96.8, 104.1, 111.3, 117.7, 124.0, 130.0, 135.4, 140.2, 145.3, 151.9, 159.5, 165.9, 169.8, 171.6, 172.3, 172.7])
-matrix4=np.mat([12.54, 14.65,16.64,18.98,21.26,24.06,27.33,30.46,33.74,37.69,42.49,48.08,53.37,57.08,59.35,60.68,61.40])
-avgX1=np.sum(matrix3)/np.shape(matrix3)[1]
+matrix3 = np.mat(
+    [88.5, 96.8, 104.1, 111.3, 117.7, 124.0, 130.0, 135.4, 140.2, 145.3, 151.9, 159.5, 165.9, 169.8, 171.6, 172.3,
+     172.7])
+matrix4 = np.mat(
+    [12.54, 14.65, 16.64, 18.98, 21.26, 24.06, 27.33, 30.46, 33.74, 37.69, 42.49, 48.08, 53.37, 57.08, 59.35, 60.68,
+     61.40])
+MahalanobisClosure = MahalanobisDistance(matrix3, matrix4)
+matrix = np.append(matrix3, matrix4, 0).T
+print(MahalanobisClosure(matrix[0], matrix[1]))
 
-avgX2=np.sum(matrix4)/np.shape(matrix4)[1]
-matrix=np.append(matrix3-avgX1, matrix4-avgX2, 0)
 
-print((matrix*matrix.T)/(np.shape(matrix)[1]-1))
+# 求特征值与特征向量
+def getEigenvalues(matrix):
+    evals, evecs = np.linalg.eig(matrix)
+    return evals, evecs
 
+
+matrix = np.mat([[8, 1, 6], [3, 5, 7], [4, 9, 2]])
+evals, evecs = getEigenvalues(matrix)
+print("特征值:",evals)
+print("特征向量:",evecs)
+
+#由特征值与特征向量还原矩阵
+def goBack(evals,evecs):
+    sigma=evals*np.eye(np.alen(evals))#特征值构成的对焦矩阵
+    return evecs*sigma*np.linalg.inv(evecs)
+
+print(goBack(evals,evecs))
