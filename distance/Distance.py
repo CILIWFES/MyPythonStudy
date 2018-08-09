@@ -68,6 +68,8 @@ print(JaccardDistance(matrix1, matrix2))
 # 相关计算
 # =1-相关系数
 # 相关系数 p=协方差/样本一标准差
+# ddof=1表示n-1
+
 def CorrelationCoefficient(dataSet1, dataSet2):
     # 使用Numpy求标准差系数
     # return np.corrcoef(np.append(dataSet1,dataSet2,0))
@@ -80,8 +82,8 @@ def CorrelationCoefficient(dataSet1, dataSet2):
     # print(np.power(np.power(dataSet1-avg1,2).sum()/np.alen(dataSet1),0.5))
 
     # 计算标准差方差
-    dv1 = np.std(dataSet1)
-    dv2 = np.std(dataSet2)
+    dv1 = np.std(dataSet1, ddof=1)
+    dv2 = np.std(dataSet2, ddof=1)
 
     print("协方差=", np.cov(dataSet1 - avg1, dataSet2 - avg2))
 
@@ -117,7 +119,7 @@ print(myCov(None, None))
 def MahalanobisDistance(dataSet1, dataSet2):
     matrix = np.append(dataSet1, dataSet2, 0)
     # 求协方差的逆矩阵
-    covinv = np.linalg.inv(np.cov(matrix))
+    covinv = np.linalg.inv(np.cov(matrix, ddof=1))
 
     def MahalanobisClosure(plot1, plot2):  # 返回闭包增加灵活性
         x1_x2 = plot1 - plot2
@@ -132,7 +134,8 @@ matrix3 = np.mat(
      172.7])
 matrix4 = np.mat(
     [12.54, 14.65, 16.64, 18.98, 21.26, 24.06, 27.33, 30.46, 33.74, 37.69, 42.49, 48.08, 53.37, 57.08, 59.35, 60.68,
-     61.40])
+     61.40]
+)
 MahalanobisClosure = MahalanobisDistance(matrix3, matrix4)
 matrix = np.append(matrix3, matrix4, 0).T
 print(MahalanobisClosure(matrix[0], matrix[1]))
@@ -146,12 +149,31 @@ def getEigenvalues(matrix):
 
 matrix = np.mat([[8, 1, 6], [3, 5, 7], [4, 9, 2]])
 evals, evecs = getEigenvalues(matrix)
-print("特征值:",evals)
-print("特征向量:",evecs)
+print("特征值:", evals)
+print("特征向量:", evecs)
 
-#由特征值与特征向量还原矩阵
-def goBack(evals,evecs):
-    sigma=evals*np.eye(np.alen(evals))#特征值构成的对焦矩阵
-    return evecs*sigma*np.linalg.inv(evecs)
 
-print(goBack(evals,evecs))
+# 由特征值与特征向量还原矩阵
+def goBack(evals, evecs):
+    sigma = evals * np.eye(np.alen(evals))  # 特征值构成的对焦矩阵
+    return evecs * sigma * np.linalg.inv(evecs)
+
+
+print(goBack(evals, evecs))
+
+#加权欧式距离
+def WeightedEuclideanDistance(plot1, plot2):
+    matrix = np.append(plot1, plot2, 0)
+    # stdMatrix = np.std(matrix, axis=0, ddof=1)
+    # print(stdMatrix)
+    # matrix=np.multiply(matrix,1/stdMatrix)
+    # matrix=matrix[0]-matrix[1]
+    # matrix=np.sqrt(matrix*matrix.T)
+    varmat=np.std(matrix.T,axis=0)
+    normvmat=(matrix-np.mean(matrix))/varmat.T
+    normvl2=normvmat[0]-normvmat[1]
+    matrix=np.sqrt(normvl2*normvl2.T)
+    return matrix
+matrix2 = np.mat([[4, 5, 6]])
+matrix1 = np.mat([[1, 2, 3]])
+print(WeightedEuclideanDistance(matrix1, matrix2))
