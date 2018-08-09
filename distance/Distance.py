@@ -161,7 +161,8 @@ def goBack(evals, evecs):
 
 print(goBack(evals, evecs))
 
-#加权欧式距离
+
+# 加权欧式距离
 def WeightedEuclideanDistance(plot1, plot2):
     matrix = np.append(plot1, plot2, 0)
     # stdMatrix = np.std(matrix, axis=0, ddof=1)
@@ -169,11 +170,13 @@ def WeightedEuclideanDistance(plot1, plot2):
     # matrix=np.multiply(matrix,1/stdMatrix)
     # matrix=matrix[0]-matrix[1]
     # matrix=np.sqrt(matrix*matrix.T)
-    varmat=np.std(matrix.T,axis=0)
-    normvmat=(matrix-np.mean(matrix))/varmat.T
-    normvl2=normvmat[0]-normvmat[1]
-    matrix=np.sqrt(normvl2*normvl2.T)
+    varmat = np.std(matrix.T, axis=0)
+    normvmat = (matrix - np.mean(matrix)) / varmat.T
+    normvl2 = normvmat[0] - normvmat[1]
+    matrix = np.sqrt(normvl2 * normvl2.T)
     return matrix
+
+
 matrix2 = np.mat([[4, 5, 6]])
 matrix1 = np.mat([[1, 2, 3]])
 print(WeightedEuclideanDistance(matrix1, matrix2))
