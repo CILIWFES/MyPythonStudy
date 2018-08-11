@@ -176,7 +176,6 @@ def WeightedEuclideanDistance(plot1, plot2):
     matrix = np.sqrt(normvl2 * normvl2.T)
     return matrix
 
-
 matrix2 = np.mat([[4, 5, 6]])
 matrix1 = np.mat([[1, 2, 3]])
 print(WeightedEuclideanDistance(matrix1, matrix2))
