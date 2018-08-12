@@ -4,6 +4,9 @@ import numpy as np
 
 print(sys.getdefaultencoding())
 
+curPath = os.path.abspath(os.path.dirname(__file__))
+rootPath = os.path.split(curPath)[0] + "/Support/chapter01"
+
 
 # 读取字符串并转化为数值类型
 def fileToMatrix(path, delimiter):
@@ -16,9 +19,7 @@ def fileToMatrix(path, delimiter):
     return np.mat(recordlist)
 
 
-# 读取test.txt
-curPath = os.path.abspath(os.path.dirname(__file__))
-rootPath = os.path.split(curPath)[0] + "/Support"
+
 # pathList = os.listdir(rootPath)
 # for path in pathList:
 #   recordmat = fileToMatrix(rootPath + "/" + path, "\t")
@@ -27,8 +28,6 @@ print(recordmat)
 
 import pickle
 
-curPath = os.path.abspath(os.path.dirname(__file__))
-rootPath = os.path.split(curPath)[0] + "/Support"
 file_obj = open(rootPath + "/rocordmat.dat", "wb")  # 必须要wb
 # 序列化
 pickle.dump(recordmat, file_obj)
@@ -51,8 +50,6 @@ def readFileLines(path, nmax=0):
         if nmax != 0: ncount += 1
     fp.close()
 
-
-rootPath = os.path.split(curPath)[0] + "/Support"
 
 for line in readFileLines(rootPath + "/test.txt", 20):
     print(line.strip())  # 消除回车

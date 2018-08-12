@@ -29,8 +29,8 @@ startTime=datetime.datetime.now()#起始时间
 # import modelTest.Numpy.matrix
 
 # import distance.Distance
-import dataVisualization.DataVisualization
-
+# import dataVisualization.DataVisualization
+import TextClassification.textStart
 
 
 ###################################################################################################################
