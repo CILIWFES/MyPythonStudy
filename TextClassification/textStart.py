@@ -78,9 +78,9 @@ import pickle
 from  sklearn.datasets.base import Bunch
 wordbagPath=rootPath+"/train_word_bag/train_set.dat"
 
-'''
-bunch=Bunch(target_name=[],label=[],fileNames=[],contents=[])
 
+bunch=Bunch(target_name=[],label=[],fileNames=[],contents=[])
+'''
 segPath=rootPath+"/train_corpus_seg/"
 cateList=os.listdir(segPath)#将分类信息保存至Bunch中
 bunch.target_name.extend(cateList)#类别信息
@@ -106,4 +106,10 @@ print("构建Bunch对象完成")
 #对象读取持久化序列
 fileObj=open(wordbagPath,'rb')
 bunch=pickle.load(fileObj)
-print(bunch.label)
+# print(bunch.label)
+
+
+stopworgPath=rootPath+"/train_word_bag/hlt_stop_words.txt"
+stopList=readFile(stopworgPath).splitlines()
+# print(stopList)
+
