@@ -17,10 +17,11 @@ def readFile(readPath):
     return content
 
 
+print(sys.getdefaultencoding())
+
+# 读取停用词
 stopworgPath = rootPath + "/train_word_bag/hlt_stop_words.txt"
 stopList = readFile(stopworgPath).splitlines()
-
-print(sys.getdefaultencoding())
 
 
 def readBunch(path):
@@ -36,9 +37,10 @@ def writeBunch(path, bunch):
     fileObj.close()
 
 
-#将bunch转化成TF-IDF权重矩阵
+# 将bunch转化成TF-IDF权重矩阵
 def makeTfidfSpace(bunch):
-    tfidfSpace = Bunch(targetName=bunch.target_name, label=bunch.label, fileNames=bunch.fileNames, contents=bunch.contents,
+    tfidfSpace = Bunch(targetName=bunch.target_name, label=bunch.label, fileNames=bunch.fileNames,
+                       contents=bunch.contents,
                        tdm=[], vocabulary=[])
     '''
     max_df：这个给定特征可以应用在 tf-idf 矩阵中，用以描述单词在文档中的最高出现率。假设一个词（term）在 80% 的文档中都出现过了，那它也许（在剧情简介的语境里）只携带非常少信息。
@@ -47,7 +49,6 @@ def makeTfidfSpace(bunch):
     '''
     vectorizer = TfidfVectorizer(stop_words=stopList, sublinear_tf=True, max_df=0.5)
 
-
     '''
     第一种方法是在用CountVectorizer类向量化之后再调用TfidfTransformer类进行预处理。
     第二种方法是直接用TfidfVectorizer完成向量化与TF-IDF预处理。
@@ -55,34 +56,34 @@ def makeTfidfSpace(bunch):
     '''
     # transformer = TfidfTransformer()
 
-    #词频矩阵(TF-IDF)
+    # 词频矩阵(TF-IDF)
     tfidfSpace.tdm = vectorizer.fit_transform(bunch.contents)
-    #Tf-idf-weighted  tf-idf的逆文件权重:  (第i-1个文件,vocabulary索引)  权重   的结构
+    # Tf-idf-weighted  tf-idf的逆文件权重:  (第i-1个文件,vocabulary索引)  权重   的结构
 
     # print(tfidfSpace.tdm.todense())#所有的词向量如0.74, 0.11, 0,0 0,0 0 0,0.54,0.55,0.001,0.052
 
-    tfidfSpace.vocabulary = vectorizer.vocabulary_#所有的词向量索引,如"xx":1表示上面对应的0.11项的词是"xx"
+    tfidfSpace.vocabulary = vectorizer.vocabulary_  # 所有的词向量索引,如"xx":1表示上面对应的0.11项的词是"xx"
 
-    new_dict = {v:k for k,v in tfidfSpace.vocabulary.items()}#转置字典索引
-    #new_dict[57514] '石像'
+    new_dict = {v: k for k, v in tfidfSpace.vocabulary.items()}  # 转置字典索引
+    # new_dict[57514] '石像'
     return tfidfSpace
+
 
 '''
 写入训练集的tfidfSpace
 '''
 path = rootPath + "/train_word_bag/train_set.dat"
-bunch = readBunch(path)#读取bunch
-tfidfSpace=makeTfidfSpace(bunch)#获取TF-IDF
+bunch = readBunch(path)  # 读取bunch
+tfidfSpace = makeTfidfSpace(bunch)  # 获取TF-IDF
 spacePath = rootPath + "/train_word_bag/tfdifspace.dat"
-writeBunch(spacePath, tfidfSpace)#序列化
-
+writeBunch(spacePath, tfidfSpace)  # 序列化
 
 '''
 写入测试集的tfidfSpace
 '''
-path = rootPath + "/test_word_bag/test_set.dat"
-bunch = readBunch(path)#读取bunch
-tfidfSpace=makeTfidfSpace(bunch)#获取TF-IDF
-spacePath = rootPath +"/test_word_bag/testSpace.dat"
-writeBunch(spacePath, tfidfSpace)#序列化
 
+path = rootPath + "/test_word_bag/test_set.dat"
+bunch = readBunch(path)  # 读取bunch
+tfidfSpace = makeTfidfSpace(bunch)  # 获取TF-IDF
+spacePath = rootPath + "/test_word_bag/testSpace.dat"
+writeBunch(spacePath, tfidfSpace)  # 序列化
