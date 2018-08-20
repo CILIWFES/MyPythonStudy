@@ -1,1 +1,38 @@
-﻿ 发信人 :   Longhorn   ( Longhorn ) ,   信 区 :   Hardware 标     题 :   未来 主流 CPU 何去何从 - - - Intel : 我 “ 芯 ” 依旧 （ 续 ) 发信站 :   日月 光华   ( 2002 年 07 月 02 日 05 : 17 : 51   星期二 ) ,   站 内 信件 为了 进一步 抢占 低端 市场 ， AMD 决定 让 Duron 自生自灭 ， 转而 用 低 主频 的 Athlon   XP 替代 这部分 份额 ； 而 Intel 虽然 没有 遗弃 Celeron ， 但 已 完全 改变 其 核心 ， 推出 了 基于 Willamette 核心 的 Celeron 处理器 ， 从 1.7 GHz 的 主频 起跳 。 对于 DIYer 来讲 这 并 不是 好消息 ， 因为 又 要 花钱 更换 主板 了 ！ 但 对 Intel 来讲 ， 这样 既 可以 让 0.18 微米 的 生产线 发挥余热 ， 又 可 进一步 提升 Celeron 的 频率 ， 可谓 一石二鸟 。 不过 新 Celeron   128KB   的 L2   Cache 仅 是 其 前辈 Tualatin 核心 Celeron   III 的 一半 ， 性能 上 处于 一定 劣势 ， 它 只能 通过 高 主频 来 弥补 这些 缺陷 ； 并且 因为 Tualatin 核心 采用 0.13 微米 工艺 ， 功耗 （ 发热量 ） 相 比较而言 要 小 很多 。 若非 SDRAM 不足 的 带宽 限制 了 Celeron   III 的 发挥 ， Intel 推出 新 核心 的 Celeron 处理器 可谓 一无是处 。 还 记得 Tualatin 核心 在 推出 之初 便 受到 Intel 市场策略 的 限制 而 无用武之地 ； 如今 Intel 的 此番 举动 分明 要 将 Tualatin 核心 的 处理器 逐出 桌面 市场 ， 看来 今后 我们 只能 在 利润 更为 丰厚 的 移动 处理器 和 入门级 服务器 市场 中 看到 Tualatin 的 身影 了 。 Intel 经过 这拨 调整 之后 ， 桌面 市场 中 的 处理器 将 完全 基于 各类 Pentium   4 核心 ； 并且 有 理由 相信 Willamette 核心 不会 再 存活 很 久 ， Celeron 处理器 到 2GHz 左右 应该 也 会 转向 Northwood 核心 。 在 移动 处理器 市场 中 ， Intel 的 调整 和 新品 推出 将 有 更 大 的 手笔 。 前段时间 才 推出 的 Pentium   4 - M ， 近期 不断 降价 ， 为 推出 更 高频率 的 版本 留出 了 空间 ， 下 一个 季度 预计 能 突破 2GHz 大关 。 同时 为了 解决目前 Pentium   4 - M 处理器 的 " 吃 电 " 能力 ， Intel 将 在 明年 第一季度 推出 代号 为 Banias 的 处理器 ， 据称 能耗 将 比 Pentium   4 - M 低 10W 。 与 之 配套 的 名为 Odem 和 Montara   GM 芯片组 将 分别 针对 一般 和 微型 笔记本 市场 。 Banias 起始 频率 为 1.40 GHz ， 而后 将 陆续 推出 低压 和 超低压 版本 ， 以期 替代 Tualatin 核心 涵盖 笔记本 CPU 市场 的 整个 分块 。 笔记本 Celeron 也 将 有 进一步 的 变化 - - 和 桌面 Celeron 处理器 一样 推出 新 核心 的 版本 。 最后 一款 Tualatin 核心 的 笔记本 Celeron 将 是 主频 为 1.4 GHz 的 版本 ， 之后 将 直接 迁移 到 Northwood 核心 ， 推出 之初 为 1.6 和 1.7 GHz 。 但 低压 和 超低压 版本 的 笔记本 Celeron 在 一段时间 内 仍 将 采用 Tualatin 核心 。 上文 提到 了 AMD 的 Opteron ， 所以 在 Intel 的 故事 临近 尾声 的 时候 ， 顺便 也 提 一下 Intel 的 64 位 处理器 未来 的 进展 。 随着 " Itanium2 " （ Mckinley ） 名号 的 正式 亮相 ， Intel 的 IA - 64 架构 有 了 新鲜血液 。 Mckinley 体积 比较 庞大 ， 采用 0.18 微米 工艺 制造 ， 拥有 0.5 － 2MB 的 L3   Cache 。 今年夏天 ， Intel 还 将 对 其 进一步 细分 ， 推出 名为 Deerfield 和 Madison 的 处理器 。 它们 都 将 采用 0.13 微米 制造 ， 分别 针对 双路 和 四路 服务器 市场 。 同时 ， 未来 我们 还 将 看到 使用 0.09 微米 工艺 ， 并且 兼容 于 Mckinley 平台 的 下一代 IA - 64 处理器 - - Montecito 。 - - ※   来源 : · 日月 光华   bbs . fudan . edu . cn · [ FROM :   10.83 . 6.1 ]
+﻿发信人: Longhorn (Longhorn), 信区: Hardware
+标  题: 未来主流CPU何去何从---Intel:我“芯”依旧（续)
+发信站: 日月光华 (2002年07月02日05:17:51 星期二), 站内信件
+
+为了进一步抢占低端市场，AMD决定让Duron自生自灭，转而用低主频的Athlon XP替代
+这部分份额；而Intel虽然没有遗弃Celeron，但已完全改变其核心，推出了基于Willam
+ette核心的Celeron处理器，从1.7GHz的主频起跳。对于DIYer来讲这并不是好消息，因
+为又要花钱更换主板了！但对Intel来讲，这样既可以让0.18微米的生产线发挥余热，又
+可进一步提升Celeron的频率，可谓一石二鸟。不过新Celeron 128KB 的L2 Cache仅是其
+前辈Tualatin核心Celeron III的一半，性能上处于一定劣势，它只能通过高主频来弥补
+这些缺陷；并且因为Tualatin核心采用0.13微米工艺，功耗（发热量）相比较而言要小
+很多。若非SDRAM不足的带宽限制了Celeron III的发挥，Intel推出新核心的Celeron处
+理器可谓一无是处。还记得Tualatin核心在推出之初便受到Intel市场策略的限制而无用
+武之地；如今Intel的此番举动分明要将Tualatin核心的处理器逐出桌面市场，看来今后
+我们只能在利润更为丰厚的移动处理器和入门级服务器市场中看到Tualatin的身影了。
+Intel经过这拨调整之后，桌面市场中的处理器将完全基于各类Pentium 4核心；并且有
+理由相信Willamette核心不会再存活很久，Celeron处理器到2GHz左右应该也会转向Nor
+thwood核心。
+在移动处理器市场中，Intel的调整和新品推出将有更大的手笔。前段时间才推出的Pen
+tium 4-M，近期不断降价，为推出更高频率的版本留出了空间，下一个季度预计能突破
+2GHz大关。同时为了解决目前Pentium 4-M处理器的"吃电"能力，Intel将在明年第一季
+度推出代号为Banias的处理器，据称能耗将比Pentium 4-M低10W。与之配套的名为Odem
+和Montara GM芯片组将分别针对一般和微型笔记本市场。Banias起始频率为1.40GHz，而
+后将陆续推出低压和超低压版本，以期替代Tualatin核心涵盖笔记本CPU市场的整个分块
+。
+笔记本Celeron也将有进一步的变化--和桌面Celeron处理器一样推出新核心的版本。最
+后一款Tualatin核心的笔记本Celeron将是主频为1.4GHz的版本，之后将直接迁移到Nor
+thwood核心，推出之初为1.6和1.7GHz。但低压和超低压版本的笔记本Celeron在一段时
+间内仍将采用Tualatin核心。
+上文提到了AMD的Opteron，所以在Intel的故事临近尾声的时候，顺便也提一下Intel的
+64位处理器未来的进展。随着"Itanium2"（Mckinley）名号的正式亮相，Intel的IA-64
+架构有了新鲜血液。Mckinley体积比较庞大，采用0.18微米工艺制造，拥有0.5－2MB的
+L3 Cache。今年夏天，Intel还将对其进一步细分，推出名为Deerfield和Madison的处理
+器。它们都将采用0.13微米制造，分别针对双路和四路服务器市场。同时，未来我们还
+将看到使用0.09微米工艺，并且兼容于Mckinley平台的下一代IA-64处理器--Montecito
+。
+--
+※ 来源:·日月光华 bbs.fudan.edu.cn·[FROM: 10.83.6.1] 

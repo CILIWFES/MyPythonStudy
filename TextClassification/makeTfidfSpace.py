@@ -39,7 +39,7 @@ def writeBunch(path, bunch):
 
 # 将bunch转化成TF-IDF权重矩阵
 def makeTfidfSpace(bunch):
-    tfidfSpace = Bunch(targetName=bunch.target_name, label=bunch.label, fileNames=bunch.fileNames,
+    tfidfSpace = Bunch(targetName=bunch.targetName, label=bunch.label, fileNames=bunch.fileNames,
                        contents=bunch.contents,
                        tdm=[], vocabulary=[])
     '''
@@ -72,18 +72,18 @@ def makeTfidfSpace(bunch):
 '''
 写入训练集的tfidfSpace
 '''
-path = rootPath + "/train_word_bag/train_set.dat"
+path = rootPath + "/train_word_bag/trainSpace.dat"
 bunch = readBunch(path)  # 读取bunch
 tfidfSpace = makeTfidfSpace(bunch)  # 获取TF-IDF
-spacePath = rootPath + "/train_word_bag/tfdifspace.dat"
+spacePath = rootPath + "/train_word_bag/trainfdifSpace.dat"
 writeBunch(spacePath, tfidfSpace)  # 序列化
 
 '''
 写入测试集的tfidfSpace
 '''
 
-path = rootPath + "/test_word_bag/test_set.dat"
+path = rootPath + "/test_word_bag/testSpace.dat"
 bunch = readBunch(path)  # 读取bunch
 tfidfSpace = makeTfidfSpace(bunch)  # 获取TF-IDF
-spacePath = rootPath + "/test_word_bag/testSpace.dat"
+spacePath = rootPath + "/test_word_bag/testTfdifSpace.dat"
 writeBunch(spacePath, tfidfSpace)  # 序列化

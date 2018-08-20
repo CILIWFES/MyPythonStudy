@@ -79,11 +79,11 @@ def searchFileToJieba(searchPath, savePath):
 # 转化语料库遍历提取语料
 seachPath = rootPath + "/train_corpus_small/"  # 未分词语料路径
 savePath = rootPath + "/train_corpus_seg/"  # 已分词的语料路径
-searchFileToJieba(seachPath, seachPath)
+searchFileToJieba(seachPath, savePath)
 
 seachPath = rootPath + "/test_corpus_small/"  # 未分词语料路径
 savePath = rootPath + "/test_corpus_seg/"  # 已分词的语料路径
-searchFileToJieba(seachPath, seachPath)
+searchFileToJieba(seachPath, savePath)
 
 import pickle
 
