@@ -37,88 +37,95 @@ print(" ".join(segList))
 
 
 # 保存文件
-def saveFile(savePath, content):
+def saveFile(savePath, fileName, content):
+    if not os.path.exists(savePath):
+        os.makedirs(savePath)  # 若不存在则创建目录
     content = content.encode(encoding='utf-8')  # 解码为字节码
-    fp = open(savePath, "wb")
+    fp = open(savePath + fileName, "wb")
     fp.write(content)
     fp.close()
 
 
 # 读取文件
-def readFile(readPath):
-    fp = open(readPath, "rb")
+def readFile(classPath, fileNamme):
+    fp = open(classPath + fileNamme, "rb")
     content = fp.read()
     content = content.decode(encoding='utf-8')  # 解码为字符码
     fp.close()
     return content
 
 
-# 转化语料库遍历提取语料
-corpusPath = rootPath + "/train_corpus_small"  # 未分词语料路径
-segPath = rootPath + "/train_corpus_seg"  # 已分词的语料路径
-
 """
 将文件夹下二级文件进行分词,并保存
-corpusPath:未分词语料路径
-segPath:已分词的语料路径
+searchPath:搜索路径,xx/xx/
+savePath:保存路径xx/xx/
 """
 
 
-def saveFileByJieBa(corpusPath, segPath):
-    # 获取语料库下的文件路径
-    cateList = os.listdir(corpusPath)
-
-    for fileDir in cateList:
-        classPath = corpusPath + "/" + fileDir + "/"
-        testPath = segPath + "/" + fileDir + "/"
-        if not os.path.exists(testPath):
-            os.makedirs(testPath)  # 若不存在则创建目录
-        fileList = os.listdir(classPath)  # 目录下所有文件
-        for fileName in fileList:
-            fullName = classPath + fileName  # 文件夹全名
-            content = readFile(fullName).strip()
+def searchFileToJieba(searchPath, savePath):
+    cateList = os.listdir(searchPath)
+    for dir in cateList:
+        if not os.path.exists(searchPath + dir + '/'):  # 不是文件夹
+            content = readFile(searchPath, dir).strip()
             content = content.replace("\r\n", "").strip()  # 删除换行与多余的空格
             content_seg = jieba.cut(content)
-            saveFile(testPath + fileName, " ".join(content_seg))
+            saveFile(savePath, dir, " ".join(content_seg))
+        else:
+            tempSearchPath = searchPath + dir + "/"
+            tempSavePath = savePath + dir + "/"
+            searchFileToJieba(tempSearchPath, tempSavePath)
 
 
-saveFileByJieBa(corpusPath, segPath)
+# 转化语料库遍历提取语料
+seachPath = rootPath + "/train_corpus_small/"  # 未分词语料路径
+savePath = rootPath + "/train_corpus_seg/"  # 已分词的语料路径
+searchFileToJieba(seachPath, seachPath)
+
+seachPath = rootPath + "/test_corpus_small/"  # 未分词语料路径
+savePath = rootPath + "/test_corpus_seg/"  # 已分词的语料路径
+searchFileToJieba(seachPath, seachPath)
 
 import pickle
 
 from sklearn.datasets.base import Bunch
 
-wordbagPath = rootPath + "/train_word_bag/train_set.dat"
-segPath = rootPath + "/train_corpus_seg/"
-
 """
+一级:总文件夹
+二级:label文件夹
+三级:分类文件
 通过词包下二级文件进行解析,获取标签和对应的内容
-segPath:词包地址
+seachPath:一级地址
 """
 
 
-def makeBunch(segPath):
+def makeBunch(seachPath):
     # 将分类信息保存至Bunch中
     bunch = Bunch(targetName=[], label=[], fileNames=[], contents=[])
-    cateList = os.listdir(segPath)
+    cateList = os.listdir(seachPath)
     bunch.targetName.extend(cateList)  # 类别信息
-
     for mydir in cateList:
-        classPath = segPath + mydir
+        classPath = seachPath + mydir + '/'
         fileList = os.listdir(classPath)
         for fileName in fileList:
-            fullName = classPath + "/" + fileName
             bunch.label.append(mydir)  # 保存当前文件的分类标签
-            bunch.fileNames.append(fullName)  # 当前文件路径
-            bunch.contents.append(readFile(fullName).strip())
-            yield bunch
+            bunch.fileNames.append(mydir + "/" + fileName)  # 当前 标签/文件名
+            bunch.contents.append(readFile(classPath, fileName).strip())  # 文本内容
+    return bunch
 
+searchPath = rootPath + "/train_corpus_seg/"
+bunch = makeBunch(searchPath)
 
-bunchs = makeBunch(segPath)
+savePath = rootPath + "/train_word_bag/trainSpace.dat"
+# Bunch对象持久化
+fileObj = open(savePath, 'wb')
+pickle.dump(bunch, fileObj)
+fileObj.close()
 
-for bunch in bunchs:
-    # Bunch对象持久化
-    fileObj = open(wordbagPath, 'wb')
-    pickle.dump(bunch, fileObj)
-    print(bunch.label)
-    fileObj.close()
+searchPath = rootPath + "/test_corpus_seg/"
+bunch = makeBunch(searchPath)
+
+savePath = rootPath + "/test_word_bag/testSpace.dat"
+# Bunch对象持久化
+fileObj = open(savePath, 'wb')
+pickle.dump(bunch, fileObj)
+fileObj.close()
