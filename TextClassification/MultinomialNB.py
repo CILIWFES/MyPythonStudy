@@ -22,8 +22,8 @@ def writeBunch(path, bunch):
     fileObj.close()
 
 
-trainPath = rootPath + "/train_word_bag/tfdifspace.dat"
-testPath = rootPath + "/test_word_bag/testSpace.dat"
+trainPath = rootPath + "/train_word_bag/trainTfidfSpace.dat"
+testPath = rootPath + "/test_word_bag/testTfidfSpace.dat"
 trainBunch = readBunch(trainPath)  # 读取训练集的Bunch
 testBunch = readBunch(testPath)  # 读取测试集的bunch
 # 应用朴素贝叶斯算法
@@ -31,12 +31,12 @@ testBunch = readBunch(testPath)  # 读取测试集的bunch
 clf = MultinomialNB(alpha=0.001).fit(trainBunch.tdm, trainBunch.label)
 
 # 预测分类结果
-predicted = clf.predict(testBunch.tdm)
+predicted = clf.predict(testBunch.tdm)#dimension mismatch
 total = len(predicted)
 rate = 0
-for label, fileName, expctCate in zip(testBunch.label, testBunch.fileName, predicted):
+for label, fileName, expctCate in zip(testBunch.label, testBunch.fileNames, predicted):
     if label != expctCate:
-        rate += 1;
+        rate += 1
         print("文件", fileName, "实际类别:", label, "预测类别", expctCate)
 
 import numpy as np

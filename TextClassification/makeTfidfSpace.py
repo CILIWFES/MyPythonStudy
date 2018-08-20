@@ -75,7 +75,7 @@ def makeTfidfSpace(bunch):
 path = rootPath + "/train_word_bag/trainSpace.dat"
 bunch = readBunch(path)  # 读取bunch
 tfidfSpace = makeTfidfSpace(bunch)  # 获取TF-IDF
-spacePath = rootPath + "/train_word_bag/trainfdifSpace.dat"
+spacePath = rootPath + "/train_word_bag/trainTfidfSpace.dat"
 writeBunch(spacePath, tfidfSpace)  # 序列化
 
 '''
@@ -85,5 +85,5 @@ writeBunch(spacePath, tfidfSpace)  # 序列化
 path = rootPath + "/test_word_bag/testSpace.dat"
 bunch = readBunch(path)  # 读取bunch
 tfidfSpace = makeTfidfSpace(bunch)  # 获取TF-IDF
-spacePath = rootPath + "/test_word_bag/testTfdifSpace.dat"
+spacePath = rootPath + "/test_word_bag/testTfidfSpace.dat"
 writeBunch(spacePath, tfidfSpace)  # 序列化
