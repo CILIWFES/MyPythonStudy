@@ -55,7 +55,7 @@ class NBayes(object):
         self.idf = 0  # 词典的idf权值向量
         self.tf = 0  # 训练集的权值矩阵
         self.tdm = 0  # P(x|yi)
-        self.Pcates = {}  # P(yi)--是个类别字典
+        self.Pcates = {}  # P(yi)--是个类别字典,结构Pcates[label]
         self.labels = []  # 对应每个文本的分类，是个外部导入的列表
         self.doclength = 0  # 训练集文本数
         self.vocablen = 0  # 词典词长
@@ -66,12 +66,12 @@ class NBayes(object):
         self.cate_prob(classVec)  # 计算每个分类在数据集中的概率：P(yi)
         self.doclength = len(trainset)
         tempset = set()
-        [tempset.add(word) for doc in trainset for word in doc]  # 生成词典
+        [tempset.add(word) for doc in trainset for word in doc]  # 生成词典(去重的)
         self.vocabulary = list(tempset)
         self.vocablen = len(self.vocabulary)
         self.calc_wordfreq(trainset)
         # self.calc_tfidf(trainset)  # 生成tf-idf权值
-        self.build_tdm()  # 按分类累计向量空间的每维值：P(x|yi)
+        self.build_tdm()  # 按分类累计向量空间的每维值：P(x|yi),X词在当前类别出现的次数/类别下所有词数(yi)
 
     # 生成 tf-idf
     def calc_tfidf(self, trainset):
@@ -93,15 +93,15 @@ class NBayes(object):
         self.tf = np.zeros([self.doclength, self.vocablen])  # 训练集文件数*词典数
         for indx in range(self.doclength):  # 遍历所有的文本
             for word in trainset[indx]:  # 遍历文本中的每个词
-                self.tf[indx, self.vocabulary.index(word)] += 1  # 找到文本的词在字典中的位置+1
+                self.tf[indx, self.vocabulary.index(word)] += 1  # 统计词频,找到文本的词在唯一字典中的位置+1
             for signleword in set(trainset[indx]):
-                self.idf[0, self.vocabulary.index(signleword)] += 1
+                self.idf[0, self.vocabulary.index(signleword)] += 1#记录逆文件权重的分母
 
             # 计算每个分类在数据集中的概率：P(yi)
 
     def cate_prob(self, classVec):
-        self.labels = classVec
-        labeltemps = set(self.labels)  # 获取全部分类
+        self.labels = classVec#写入
+        labeltemps = set(self.labels)  # 获取全部分类,并去重
         for labeltemp in labeltemps:
             # 统计列表中重复的值：self.labels.count(labeltemp)
             self.Pcates[labeltemp] = float(self.labels.count(labeltemp)) / float(len(self.labels))
@@ -111,9 +111,10 @@ class NBayes(object):
         self.tdm = np.zeros([len(self.Pcates), self.vocablen])  # 类别行*词典列
         sumlist = np.zeros([len(self.Pcates), 1])  # 统计每个分类的总值
         for indx in range(self.doclength):
-            self.tdm[self.labels[indx]] += self.tf[indx]  # 将同一类别的词向量空间值加总
-            sumlist[self.labels[indx]] = np.sum(self.tdm[self.labels[indx]])  # 统计每个分类的总值--是个标量
-        self.tdm = self.tdm / sumlist  # P(x|yi)
+            self.tdm[self.labels[indx]] += self.tf[indx]  # 统计每个分类下每个词的全局词频
+        for indx in range(len(self.tdm)):
+            sumlist[self.labels[indx]] = np.sum(self.tdm[self.labels[indx]])  # 统计每个分类的所有词频
+        self.tdm = self.tdm / sumlist  # P(x|yi)计算当前分类下X词出现的概率,X词在当前类别出现的次数/类别下所有词数(yi)
 
     # 测试集映射到当前词典
     def map2vocab(self, testdata):

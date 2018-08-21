@@ -11,8 +11,8 @@ from TextClassification.Nbayes_lib import *
 # 配置utf-8输出环境
 sys.getdefaultencoding()
 
-dataSet,listClasses = loadDataSet()
+contentSet, classSet = loadDataSet()
 nb = NBayes()
-nb.train_set(dataSet,listClasses)
-nb.map2vocab(dataSet[3])
+nb.train_set(contentSet, classSet)
+nb.map2vocab(contentSet[3])
 print(nb.predict(nb.testset))
