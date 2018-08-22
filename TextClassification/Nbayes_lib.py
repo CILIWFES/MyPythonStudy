@@ -14,30 +14,6 @@ def loadDataSet():
     return postingList, classVec
 
 
-# 读取文件
-def readfile(path):
-    fp = open(path, "rb")
-    content = fp.read()
-    fp.close()
-    return content
-
-
-'''		
-#计算分类精度：
-def metrics_result(actual,predict):
-	print '精度:{0:.3f}'.format(metrics.precision_score(actual,predict))  
-	print '召回:{0:0.3f}'.format(metrics.recall_score(actual,predict))  
-	print 'f1-score:{0:.3f}'.format(metrics.f1_score(actual,predict))  
-'''
-
-
-# 读取bunch对象
-def readbunchobj(path):
-    file_obj = open(path, "rb")
-    bunch = pickle.load(file_obj)
-    file_obj.close()
-    return bunch
-
 
 # 写入bunch对象
 def writebunchobj(path, bunchobj):
@@ -169,3 +145,14 @@ class NBayes(object):
             predClass.append(retClass)
 
         return predClass
+    """
+    去除停用词
+    """
+    def deleteStopWord(self,trainSet,stopWords):
+        for i in range(len(trainSet)):
+            for word in trainSet[i]:
+                if word in stopWords or word=='':
+                    trainSet[i].remove(word)
+        return trainSet
+
+

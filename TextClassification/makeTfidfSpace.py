@@ -55,9 +55,11 @@ def makeTfidfSpace(bunch):
     这里是用第二种
     '''
     # transformer = TfidfTransformer()
-
+    contents=list()
+    for content in  bunch.contents:
+        contents.append(str(content))
     # 词频矩阵(TF-IDF)
-    tfidfSpace.tdm = vectorizer.fit_transform(bunch.contents)
+    tfidfSpace.tdm = vectorizer.fit_transform(contents)#list(str)
     # Tf-idf-weighted  tf-idf的逆文件权重:  (第i-1个文件,vocabulary索引)  权重   的结构
 
     # print(tfidfSpace.tdm.todense())#所有的词向量如0.74, 0.11, 0,0 0,0 0 0,0.54,0.55,0.001,0.052

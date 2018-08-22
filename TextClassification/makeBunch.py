@@ -109,7 +109,8 @@ def makeBunch(seachPath):
         for fileName in fileList:
             bunch.label.append(mydir)  # 保存当前文件的分类标签
             bunch.fileNames.append(mydir + "/" + fileName)  # 当前 标签/文件名
-            bunch.contents.append(readFile(classPath, fileName).strip())  # 文本内容
+            readContents= readFile(classPath, fileName).strip().split(' ')
+            bunch.contents.append(readContents)  # 文本内容
     return bunch
 
 searchPath = rootPath + "/train_corpus_seg/"
