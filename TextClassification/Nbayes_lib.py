@@ -30,6 +30,7 @@ class NBayes(object):
         self.tf_idf = 0  # tf_idf
         self.tdm = 0  # P(x|yi)
         self.Pcates = {}  # P(yi)--是个类别字典,结构Pcates[label]
+        self.classList =[]
         self.labels = []  # 对应每个文本的分类，是个外部导入的列表
         self.doclength = 0  # 文本训练集数
         self.vocablen = 0  # 词典词长
@@ -46,7 +47,7 @@ class NBayes(object):
         self.vocablen = len(self.vocabulary)  # 记录总词数
 
         # 统计每个文本的词频,统计每个词的调用文件数
-        self.calc_wordfreq(trainSet)
+        # self.calc_wordfreq(trainSet)
         self.tf_idf=self.tf
         self.calc_tfidf(trainSet)  # 生成tf-idf权值
 
@@ -58,12 +59,14 @@ class NBayes(object):
         self.tf = np.zeros([self.doclength, self.vocablen])
 
         for i in range(self.doclength):
+            if i%100==0:
+                print("第",i+1,"次运行")
             for word in trainSet[i]:
-                self.tf[i, self.vocabulary.index(word)] += 1
+                indx=self.vocabulary.index(word)
+                self.tf[i, indx] += 1
+                self.idf[0,indx] += 1
             # 统计文本词频TF
             self.tf[i] = self.tf[i] / float(len(trainSet[i]))
-            for word in set(trainSet[i]):
-                self.idf[0, self.vocabulary.index(word)] += 1
         self.idf = np.log(float(self.doclength) / self.idf)
         self.tf_idf = np.multiply(self.tf, self.idf)  # 矩阵与向量的点乘
         return self.tf_idf
@@ -94,6 +97,7 @@ class NBayes(object):
         for labeltemp in set(self.labels):  # 对分类进行去重遍历
             # 计算每个分类再classVec中的概率
             self.Pcates[labeltemp] = float(self.labels.count(labeltemp)) / float(len(self.labels))
+        self.classList=[k for k in self.Pcates.items()]
 
     """
      按分类计算P(x|yi)
@@ -104,10 +108,10 @@ class NBayes(object):
         sumlist = np.zeros([len(self.Pcates), 1])  # 统计每个类别在类别向量出现的总次数
 
         for i in range(self.doclength):  # 遍历每个文件
-            self.tdm[self.labels[i]] += self.tf_idf[i]  # 按类别统计:每个词权重总数
+            self.tdm[self.classList.index(self.labels[i])] += self.tf_idf[i]  # 按类别统计:每个词权重总数
 
         for i in range(len(self.tdm)):  # 遍历类别
-            sumlist[self.labels[i]] = np.sum(self.tdm[self.labels[i]])  # 统计每个分类的所有词频
+            sumlist[self.labels[i]] = np.sum(self.tdm[self.classList.index(self.labels[i])])  # 统计每个分类的所有词频
 
         self.tdm = self.tdm / sumlist  # P(x|yi)计算当前分类下X词出现的概率,X词在当前类别出现的次数/类别下所有词数(yi)
 
@@ -136,12 +140,12 @@ class NBayes(object):
         for i in range(np.shape(testSet)[0]):
             predvalue = 0
             retClass = 0
-            for tdm_vect, keyclass in zip(self.tdm, self.Pcates):
+            for tdmVect, keyClass in zip(self.tdm, self.classList):
                 # P(x|yi)P(yi)
-                temp = np.sum(np.multiply(testSet[i], tdm_vect) * self.Pcates[keyclass])
+                temp = np.sum(np.multiply(testSet[i], tdmVect) * self.Pcates[keyClass])
                 if temp > predvalue:
                     predvalue = temp
-                    retClass = keyclass
+                    retClass = keyClass
             predClass.append(retClass)
 
         return predClass
