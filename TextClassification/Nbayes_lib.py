@@ -57,19 +57,23 @@ class NBayes(object):
         self.tdm = 0  # P(x|yi)
         self.Pcates = {}  # P(yi)--是个类别字典,结构Pcates[label]
         self.labels = []  # 对应每个文本的分类，是个外部导入的列表
-        self.doclength = 0  # 训练集文本数
+        self.doclength = 0  # 文本训练集数
         self.vocablen = 0  # 词典词长
-        self.testset = 0  # 测试集
 
     #	加载训练集并生成词典，以及tf, idf值
-    def train_set(self, trainset, classVec):
-        self.cate_prob(classVec)  # 计算每个分类在数据集中的概率：P(yi)
-        self.doclength = len(trainset)
-        tempset = set()
-        [tempset.add(word) for doc in trainset for word in doc]  # 生成词典(去重的)
-        self.vocabulary = list(tempset)
-        self.vocablen = len(self.vocabulary)
-        self.calc_wordfreq(trainset)
+    def train_set(self, trainSet, classVec):
+        self.statisticalByClassVec(classVec)  # 计算每个分类在总类别集合中出现的概率：P(yi)
+        self.doclength = len(trainSet)#统计文本数
+
+        tempset = set()#建立集合
+        [tempset.add(word) for trainVec in trainSet for word in trainVec]  # 生成词典集合
+
+        self.vocabulary = list(tempset)#把字典集合转化为list放入字典顺序表
+        self.vocablen = len(self.vocabulary)#记录总词数
+
+        #统计每个文本的词频,统计每个词的调用文件数
+        self.calc_wordfreq(trainSet)
+
         # self.calc_tfidf(trainset)  # 生成tf-idf权值
         self.build_tdm()  # 按分类累计向量空间的每维值：P(x|yi),X词在当前类别出现的次数/类别下所有词数(yi)
 
@@ -87,52 +91,75 @@ class NBayes(object):
         self.idf = np.log(float(self.doclength) / self.idf)
         self.tf = np.multiply(self.tf, self.idf)  # 矩阵与向量的点乘
 
-    # 生成普通的词频向量
-    def calc_wordfreq(self, trainset):
-        self.idf = np.zeros([1, self.vocablen])  # 1*词典数
+    """
+    生成普通的词频向量
+    统计词频
+    统计每个词的调用文件
+    """
+    def calc_wordfreq(self, trainSet):
+        #idf为逆文件频率
+        self.idf = np.zeros([1, self.vocablen])  # [[词0,词1,........,词n-1]]
+        #生针对每个文件的词频率
         self.tf = np.zeros([self.doclength, self.vocablen])  # 训练集文件数*词典数
-        for indx in range(self.doclength):  # 遍历所有的文本
-            for word in trainset[indx]:  # 遍历文本中的每个词
-                self.tf[indx, self.vocabulary.index(word)] += 1  # 统计词频,找到文本的词在唯一字典中的位置+1
-            for signleword in set(trainset[indx]):
-                self.idf[0, self.vocabulary.index(signleword)] += 1#记录逆文件权重的分母
+        for i in range(self.doclength):  # 遍历所有的文本
+            for word in trainSet[i]:  #统计在第index+1个文件下每个单词的词频
+                self.tf[i, self.vocabulary.index(word)] += 1 #获取字典顺序表vocabulary下word的索引
+            for word in set(trainSet[i]):#去重,遍历词,词调用频率+1
+                self.idf[0, self.vocabulary.index(word)] += 1#记录逆文件权重的分母
 
-            # 计算每个分类在数据集中的概率：P(yi)
 
-    def cate_prob(self, classVec):
+    """
+    生成分类字典,统计每个分类的概率P(yi)
+    """
+    def statisticalByClassVec(self, classVec):
         self.labels = classVec#写入
-        labeltemps = set(self.labels)  # 获取全部分类,并去重
-        for labeltemp in labeltemps:
-            # 统计列表中重复的值：self.labels.count(labeltemp)
+        for labeltemp in set(self.labels):#对分类进行去重遍历
+            # 计算每个分类再classVec中的概率
             self.Pcates[labeltemp] = float(self.labels.count(labeltemp)) / float(len(self.labels))
 
-    # 按分类累计向量空间的每维值：P(x|yi)
+    """
+     按分类计算P(x|yi)
+    """
     def build_tdm(self):
-        self.tdm = np.zeros([len(self.Pcates), self.vocablen])  # 类别行*词典列
-        sumlist = np.zeros([len(self.Pcates), 1])  # 统计每个分类的总值
-        for indx in range(self.doclength):
-            self.tdm[self.labels[indx]] += self.tf[indx]  # 统计每个分类下每个词的全局词频
-        for indx in range(len(self.tdm)):
-            sumlist[self.labels[indx]] = np.sum(self.tdm[self.labels[indx]])  # 统计每个分类的所有词频
+        self.tdm = np.zeros([len(self.Pcates), self.vocablen])  #每个类别: 每个词的出现的概率
+        sumlist = np.zeros([len(self.Pcates), 1])  # 统计每个类别在类别向量出现的总次数
+
+        for i in range(self.doclength):#遍历每个文件
+            self.tdm[self.labels[i]] += self.tf[i]  # 按类别统计:每个词总数
+
+        for i in range(len(self.tdm)):#遍历类别
+            sumlist[self.labels[i]] = np.sum(self.tdm[self.labels[i]])  # 统计每个分类的所有词频
         self.tdm = self.tdm / sumlist  # P(x|yi)计算当前分类下X词出现的概率,X词在当前类别出现的次数/类别下所有词数(yi)
 
-    # 测试集映射到当前词典
-    def map2vocab(self, testdata):
-        self.testset = np.zeros([1, self.vocablen])
-        for word in testdata:
-            self.testset[0, self.vocabulary.index(word)] += 1
+    # 构建测试集合
+    def test_set(self, testSet):
+        testDetail= [{"all":0,"notFind":0,"setIndex":i} for i in range(len(testSet))]
+        testSetRet = np.zeros([1, self.vocablen])
+        for i in range(len(testSet)):
+            testDetail[i]["all"]=len(testSet[i])
+            notFind=0
+            for word in testSet[i]:
+                if word in self.vocabulary:
+                    testSetRet[0, self.vocabulary.index(word)] += 1
+                else:
+                    notFind+=1
+            testDetail[i]["notFind"]=notFind
+        return testSetRet,testDetail
 
     # 输出分类类别
-    def predict(self, testset):
-        if np.shape(testset)[1] != self.vocablen:
+    def predict(self, testSet):
+        if np.shape(testSet)[1] != self.vocablen:
             print("输入错误")
             exit(0)
         predvalue = 0
-        predclass = ""
-        for tdm_vect, keyclass in zip(self.tdm, self.Pcates):
-            # P(x|yi)P(yi)
-            temp = np.sum(testset * tdm_vect * self.Pcates[keyclass])
-            if temp > predvalue:
-                predvalue = temp
-                predclass = keyclass
-        return predclass
+        predClass =list(np.shape(testSet)[0])
+
+        for i in range(np.shape(testSet)[0]):
+            for tdm_vect, keyclass in zip(self.tdm, self.Pcates):
+                # P(x|yi)P(yi)
+                temp = np.sum(testSet * tdm_vect * self.Pcates[keyclass])
+                if temp > predvalue:
+                    predvalue = temp
+                    predClass[i]=keyclass
+
+        return predClass

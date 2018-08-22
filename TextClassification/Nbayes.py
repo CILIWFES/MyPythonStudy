@@ -14,5 +14,6 @@ sys.getdefaultencoding()
 contentSet, classSet = loadDataSet()
 nb = NBayes()
 nb.train_set(contentSet, classSet)
-nb.map2vocab(contentSet[3])
-print(nb.predict(nb.testset))
+testSet=[['BBB','stop', 'posting', 'stupid', 'worthless', 'garbage']]
+testSet,testDetail=nb.test_set(testSet)
+print(nb.predict(testSet))
