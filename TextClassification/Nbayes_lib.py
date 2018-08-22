@@ -151,15 +151,17 @@ class NBayes(object):
         if np.shape(testSet)[1] != self.vocablen:
             print("输入错误")
             exit(0)
-        predvalue = 0
-        predClass =list(np.shape(testSet)[0])
+        predClass =list()
 
         for i in range(np.shape(testSet)[0]):
+            predvalue = 0
+            retClass=0
             for tdm_vect, keyclass in zip(self.tdm, self.Pcates):
                 # P(x|yi)P(yi)
                 temp = np.sum(testSet * tdm_vect * self.Pcates[keyclass])
                 if temp > predvalue:
                     predvalue = temp
-                    predClass[i]=keyclass
+                    retClass=keyclass
+            predClass.append(retClass)
 
         return predClass
