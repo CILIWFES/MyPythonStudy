@@ -57,7 +57,7 @@ def classify(testdata, dataSet, labels, k):
     # 该句是按字典值排序的固定用法
     # classCount.iteritems()：字典迭代器函数
     # key：排序参数；operator.itemgetter(1)：多级排序
-    sortedClassCount = sorted(classCount.iteritems(), key=operator.itemgetter(1), reverse=True)
+    sortedClassCount = sorted(classCount.items(), key=operator.itemgetter(1), reverse=True)
     # 返回序最高的一项
     return sortedClassCount[0][0]
 

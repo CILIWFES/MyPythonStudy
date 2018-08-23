@@ -4,6 +4,7 @@
 from numpy import *
 import operator
 from TextClassification.Nbayes_lib import *
+from TextClassification.kNN import *
 
 
 # 配置utf-8输出环境
@@ -24,7 +25,7 @@ def classify(testdata, trainSet, listClasses, k):
     dataSetSize = trainSet.shape[0]
     # 计算测试集与训练集之间的距离：夹角余弦
     distances = array(zeros(dataSetSize))
-    for indx in xrange(dataSetSize):
+    for indx in range(dataSetSize):
         distances[indx] = cosdist(testdata, trainSet[indx])
     # 5.根据生成的夹角余弦按从大到小排序,结果为索引号
     sortedDistIndicies = argsort(-distances)
@@ -41,16 +42,16 @@ def classify(testdata, trainSet, listClasses, k):
     # 该句是按字典值排序的固定用法
     # classCount.iteritems()：字典迭代器函数
     # key：排序参数；operator.itemgetter(1)：多级排序
-    sortedClassCount = sorted(classCount.iteritems(), key=operator.itemgetter(1), reverse=True)
+    sortedClassCount = sorted(classCount.items(), key=operator.itemgetter(1), reverse=True)
     # 返回序最高的一项
     return sortedClassCount[0][0]
 
 
 k = 3
-# testdata=[0.2,0.2]
-# dataSet,labels = createDataSet()
-# print classify(mat(testdata), mat(dataSet), labels, k)
-dataSet, listClasses = loadDataSet()
-nb = NBayes()
-nb.train_set(dataSet, listClasses)
-print(classify(nb.tf[3], nb.tf, listClasses, k))
+testdata=[0.2,0.2]
+dataSet,labels = createDataSet()
+print (classify(mat(testdata), mat(dataSet), labels, k))
+# dataSet, listClasses = loadDataSet()
+# nb = NBayes()
+# nb.train_set(dataSet, listClasses)
+# print(classify(nb.tf[3], nb.tf, listClasses, k))

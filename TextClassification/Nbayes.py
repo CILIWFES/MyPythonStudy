@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-
-import sys  
-import os 
-import time
-from numpy import *
-import numpy as np
 from TextClassification.Nbayes_lib import *
 import pickle
 
@@ -50,12 +44,13 @@ testBunch = readBunch(testPath)  # 读取测试集的bunch
 NBayesPath = rootPath + "/train_word_bag/NBayes.dat"
 # nb = readBunch(NBayesPath)
 # trainSet, classSet = loadDataSet()
-
 nb = NBayes()
 trainSet=nb.deleteStopWord(trainBunch.contents,stopList)
 nb.train_set(trainBunch.contents, trainBunch.label)
 
-writeBunch(NBayesPath,nb)
 
 testSet,testDetail=nb.test_set(testBunch.contents)
 print(nb.predict(testSet))
+
+writeBunch(NBayesPath,nb)
+print("序列化成功!")

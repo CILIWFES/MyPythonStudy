@@ -1,7 +1,17 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import pickle
+import sys
+import os
 
+curPath = os.path.abspath(os.path.dirname(__file__))
+rootPath = os.path.split(curPath)[0] + "/Support/chapter02"
+NBayesPath = rootPath + "/train_word_bag/NBayes.dat"
+
+def writeBunch(path, bunch):
+    fileObj = open(path, "wb")
+    pickle.dump(bunch, fileObj)
+    fileObj.close()
 
 def loadDataSet():
     postingList = [['my', 'dog', 'has', 'flea', 'problems', 'help', 'please'],
@@ -16,7 +26,7 @@ def loadDataSet():
 
 
 # 写入bunch对象
-def writebunchobj(path, bunchobj):
+def self(path, bunchobj):
     file_obj = open(path, "wb")
     pickle.dump(bunchobj, file_obj)
     file_obj.close()
@@ -50,7 +60,6 @@ class NBayes(object):
         # self.calc_wordfreq(trainSet)
         self.tf_idf=self.tf
         self.calc_tfidf(trainSet)  # 生成tf-idf权值
-
         self.build_tdm()  # 按分类累计向量空间的每维值：P(x|yi),X词在当前类别出现的次数/类别下所有词数(yi)
 
     # 生成 tf-idf
@@ -97,7 +106,7 @@ class NBayes(object):
         for labeltemp in set(self.labels):  # 对分类进行去重遍历
             # 计算每个分类再classVec中的概率
             self.Pcates[labeltemp] = float(self.labels.count(labeltemp)) / float(len(self.labels))
-        self.classList=[k for k in self.Pcates.items()]
+            self.classList.append(labeltemp)
 
     """
      按分类计算P(x|yi)
@@ -111,8 +120,10 @@ class NBayes(object):
             self.tdm[self.classList.index(self.labels[i])] += self.tf_idf[i]  # 按类别统计:每个词权重总数
 
         for i in range(len(self.tdm)):  # 遍历类别
-            sumlist[self.labels[i]] = np.sum(self.tdm[self.classList.index(self.labels[i])])  # 统计每个分类的所有词频
+            sumlist[self.classList.index(self.labels[i])] = np.sum(self.tdm[self.classList.index(self.labels[i])])  # 统计每个分类的所有词频
 
+        print(np.shape(self.tdm))
+        print(np.shape(sumlist))
         self.tdm = self.tdm / sumlist  # P(x|yi)计算当前分类下X词出现的概率,X词在当前类别出现的次数/类别下所有词数(yi)
 
     # 构建测试集合
