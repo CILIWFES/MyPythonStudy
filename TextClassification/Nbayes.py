@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from TextClassification.Nbayes_lib import *
 import pickle
+import gc
 
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0] + "/Support/chapter02"
@@ -52,5 +53,6 @@ testTfMatrix, testDetail = nb.makeTest(testBunch.contents)
 print("预测为:", nb.predict(testTfMatrix))
 print(testDetail)
 
+gc.collect()
 writeBunch(NBayesPath, nb)
 print("序列化成功!")
