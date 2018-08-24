@@ -14,9 +14,11 @@ def readFile(readPath):
     fp.close()
     return content
 
+
 # 读取停用词
 stopworgPath = rootPath + "/train_word_bag/hlt_stop_words.txt"
 stopList = readFile(stopworgPath).splitlines()
+
 
 def readBunch(path):
     fileObj = open(path, "rb")
@@ -39,18 +41,16 @@ testPath = rootPath + "/test_word_bag/testTfidfSpace.dat"
 trainBunch = readBunch(trainPath)  # 读取训练集的Bunch
 testBunch = readBunch(testPath)  # 读取测试集的bunch
 
-
-
 NBayesPath = rootPath + "/train_word_bag/NBayes.dat"
 # nb = readBunch(NBayesPath)
 # trainSet, classSet = loadDataSet()
 nb = NBayes()
-trainSet=nb.deleteStopWord(trainBunch.contents,stopList)
-nb.train_set(trainBunch.contents, trainBunch.label)
+trainSet = nb.deleteStopWord(trainBunch.contents, stopList)
+nb.makeTrain(trainBunch.contents, trainBunch.label)
 
+testTfMatrix, testDetail = nb.makeTest(testBunch.contents)
+print("预测为:", nb.predict(testTfMatrix))
+print(testDetail)
 
-testSet,testDetail=nb.test_set(testBunch.contents)
-print(nb.predict(testSet))
-
-writeBunch(NBayesPath,nb)
+writeBunch(NBayesPath, nb)
 print("序列化成功!")

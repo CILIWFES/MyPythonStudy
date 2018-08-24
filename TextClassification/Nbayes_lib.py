@@ -8,10 +8,12 @@ curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0] + "/Support/chapter02"
 NBayesPath = rootPath + "/train_word_bag/NBayes.dat"
 
+
 def writeBunch(path, bunch):
     fileObj = open(path, "wb")
     pickle.dump(bunch, fileObj)
     fileObj.close()
+
 
 def loadDataSet():
     postingList = [['my', 'dog', 'has', 'flea', 'problems', 'help', 'please'],
@@ -24,7 +26,6 @@ def loadDataSet():
     return postingList, classVec
 
 
-
 # 写入bunch对象
 def self(path, bunchobj):
     file_obj = open(path, "wb")
@@ -34,48 +35,46 @@ def self(path, bunchobj):
 
 class NBayes(object):
     def __init__(self):
-        self.vocabulary = []  # 词典
+        self.vocabularys = []  # 词典
+        self.vocabularyIndex = {}  # 字典表记录词典索引
         self.idf = 0  # 词典的idf权值向量
         self.tf = 0  # 训练集的权值矩阵
         self.tf_idf = 0  # tf_idf
         self.tdm = 0  # P(x|yi)
-        self.Pcates = {}  # P(yi)--是个类别字典,结构Pcates[label]
-        self.classList =[]
-        self.labels = []  # 对应每个文本的分类，是个外部导入的列表
+        self.classRateMap = {}  # P(yi)--是个类别字典,结构Pcates[label]
+        self.classList = []
+        self.classVec = []  # 对应每个文本的分类，是个外部导入的列表
         self.doclength = 0  # 文本训练集数
         self.vocablen = 0  # 词典词长
 
     #	加载训练集并生成词典，以及tf, idf值
-    def train_set(self, trainSet, classVec):
-        self.statisticalByClassVec(classVec)  # 计算每个分类在总类别集合中出现的概率：P(yi)
-        self.doclength = len(trainSet)  # 统计文本数
+    def makeTrain(self, trainMatrix, classVec):
+        self.makeByClassMap(classVec)  # 计算每个分类在总类别集合中出现的概率：P(yi)
+        self.doclength = np.shape(trainMatrix)[0]  # 统计文本数
 
-        tempset = set()  # 建立集合
-        [tempset.add(word) for trainVec in trainSet for word in trainVec]  # 生成词典集合
-
-        self.vocabulary = list(tempset)  # 把字典集合转化为list放入字典顺序表
-        self.vocablen = len(self.vocabulary)  # 记录总词数
+        self.vocabularys = [word for trainVec in trainMatrix for word in trainVec]  # 把字典集合转化为list放入字典顺序表
+        self.vocabularyIndex = {name: index for index, name in enumerate(self.vocabularys)}  # 索引序列
+        self.vocablen = len(self.vocabularys)  # 记录总词数
 
         # 统计每个文本的词频,统计每个词的调用文件数
         # self.calc_wordfreq(trainSet)
-        self.tf_idf=self.tf
-        self.calc_tfidf(trainSet)  # 生成tf-idf权值
-        self.build_tdm()  # 按分类累计向量空间的每维值：P(x|yi),X词在当前类别出现的次数/类别下所有词数(yi)
+        self.calTf_Idf(trainMatrix)  # 生成tf-idf权值
+        self.makeTdm()  # 按分类累计向量空间的每维值：P(x|yi),X词在当前类别出现的次数/类别下所有词数(yi)
 
     # 生成 tf-idf
-    def calc_tfidf(self, trainSet):
+    def calTf_Idf(self, trainMatrix):
         self.idf = np.zeros([1, self.vocablen])
         self.tf = np.zeros([self.doclength, self.vocablen])
 
         for i in range(self.doclength):
-            if i%100==0:
-                print("第",i+1,"次运行")
-            for word in trainSet[i]:
-                indx=self.vocabulary.index(word)
-                self.tf[i, indx] += 1
-                self.idf[0,indx] += 1
+            if i % 100 == 0:
+                print("第", i + 1, "次运行")
+            for word in set(trainMatrix[i]):
+                index = self.vocabularyIndex[word]
+                self.tf[i, index] += trainMatrix[i].count(word)
+                self.idf[0, index] += 1
             # 统计文本词频TF
-            self.tf[i] = self.tf[i] / float(len(trainSet[i]))
+            self.tf[i] = self.tf[i] / float(np.alen(trainMatrix[i]))
         self.idf = np.log(float(self.doclength) / self.idf)
         self.tf_idf = np.multiply(self.tf, self.idf)  # 矩阵与向量的点乘
         return self.tf_idf
@@ -86,88 +85,90 @@ class NBayes(object):
     统计每个词的调用文件
     """
 
-    def calc_wordfreq(self, trainSet):
+    def calc_wordfreq(self, trainMatrix):
         # idf为逆文件频率
         self.idf = np.zeros([1, self.vocablen])  # [[词0,词1,........,词n-1]]
         # 每个文件:每个词出现数
         self.tf = np.zeros([self.doclength, self.vocablen])  # 训练集文件数*词典数
         for i in range(self.doclength):  # 遍历所有的文本
-            for word in trainSet[i]:  # 统计在第index+1个文件下每个单词的词频
-                self.tf[i, self.vocabulary.index(word)] += 1  # 获取字典顺序表vocabulary下word的索引
-            for word in set(trainSet[i]):  # 去重,遍历词,词调用频率+1
-                self.idf[0, self.vocabulary.index(word)] += 1  # 记录逆文件权重的分母
+            if i % 100 == 0:
+                print("第", i + 1, "次运行")
+            for word in set(trainMatrix[i]):
+                index = self.vocabularyIndex[word]
+                self.tf[i, index] += trainMatrix[i].count(word)
+                self.idf[0, index] += 1
+
+        self.tf_idf = self.tf
 
     """
-    生成分类字典,统计每个分类的概率P(yi)
+    生成分类字典,统计每个类别出现的概率P(yi)
+    生成分类索引字典
     """
 
-    def statisticalByClassVec(self, classVec):
-        self.labels = classVec  # 写入
-        for labeltemp in set(self.labels):  # 对分类进行去重遍历
+    def makeByClassMap(self, classVec):
+        self.classVec = classVec  # 写入
+        classSet = set(self.classVec)
+        self.classList = list(classSet)
+        for label in classSet:  # 对分类进行去重遍历
             # 计算每个分类再classVec中的概率
-            self.Pcates[labeltemp] = float(self.labels.count(labeltemp)) / float(len(self.labels))
-            self.classList.append(labeltemp)
+            self.classRateMap[label] = float(self.classVec.count(label)) / float(np.alen(self.classVec))
 
     """
      按分类计算P(x|yi)
     """
 
-    def build_tdm(self):
-        self.tdm = np.zeros([len(self.Pcates), self.vocablen])  # 每个类别: 每个词的出现的概率
-        sumlist = np.zeros([len(self.Pcates), 1])  # 统计每个类别在类别向量出现的总次数
+    def makeTdm(self):
+        self.tdm = np.zeros([len(self.classList), self.vocablen])  # 每个类别: 每个词的出现的概率
+        sumlist = np.zeros([len(self.classList), 1])  # 统计每个类别在类别向量出现的总次数
 
         for i in range(self.doclength):  # 遍历每个文件
-            self.tdm[self.classList.index(self.labels[i])] += self.tf_idf[i]  # 按类别统计:每个词权重总数
+            self.tdm[self.classList.index(self.classVec[i])] += self.tf_idf[i]  # 按类别统计:每个词权重总数
 
-        for i in range(len(self.tdm)):  # 遍历类别
-            sumlist[self.classList.index(self.labels[i])] = np.sum(self.tdm[self.classList.index(self.labels[i])])  # 统计每个分类的所有词频
+        for i in range(len(self.classList)):  # 遍历类别
+            sumlist[i] = np.sum(self.tdm[i])  # 统计每个分类的所有词频
 
-        print(np.shape(self.tdm))
-        print(np.shape(sumlist))
         self.tdm = self.tdm / sumlist  # P(x|yi)计算当前分类下X词出现的概率,X词在当前类别出现的次数/类别下所有词数(yi)
 
     # 构建测试集合
-    def test_set(self, testSet):
-        testDetail = [{"all": 0, "notFind": 0, "setIndex": i} for i in range(len(testSet))]
-        testSetRet = np.zeros([1, self.vocablen])
-        for i in range(len(testSet)):
-            testDetail[i]["all"] = len(testSet[i])
+    def makeTest(self, testMatrix):
+        testDetail = [{"all": 0, "notFind": 0, "setIndex": i} for i in range(np.shape(testMatrix)[0])]
+        testTfMatrix = np.zeros([1, self.vocablen])
+        for i in range(len(testMatrix)):
+            testDetail[i]["all"] = len(testMatrix[i])
             notFind = 0
-            for word in testSet[i]:
-                if word in self.vocabulary:
-                    testSetRet[0, self.vocabulary.index(word)] += 1
+            for word in testMatrix[i]:
+                index = self.vocabularyIndex[word]
+                if index != None:
+                    testTfMatrix[i, index] += 1
                 else:
                     notFind += 1
             testDetail[i]["notFind"] = notFind
-        return testSetRet, testDetail
+        return testTfMatrix, testDetail
 
     # 输出分类类别
-    def predict(self, testSet):
-        if np.shape(testSet)[1] != self.vocablen:
-            print("输入错误")
-            exit(0)
+    def predict(self, testTfMatrix):
         predClass = list()
 
-        for i in range(np.shape(testSet)[0]):
+        for i in range(np.shape(testTfMatrix)[0]):
             predvalue = 0
             retClass = 0
             for tdmVect, keyClass in zip(self.tdm, self.classList):
                 # P(x|yi)P(yi)
-                temp = np.sum(np.multiply(testSet[i], tdmVect) * self.Pcates[keyClass])
+                temp = np.sum(np.multiply(testTfMatrix[i], tdmVect) * self.Pcates[keyClass])
                 if temp > predvalue:
                     predvalue = temp
                     retClass = keyClass
             predClass.append(retClass)
 
         return predClass
+
     """
     去除停用词
     """
-    def deleteStopWord(self,trainSet,stopWords):
+
+    def deleteStopWord(self, trainSet, stopWords):
         for i in range(len(trainSet)):
             for word in trainSet[i]:
-                if word in stopWords or word=='':
+                if word in stopWords or word == '':
                     trainSet[i].remove(word)
         return trainSet
-
-
