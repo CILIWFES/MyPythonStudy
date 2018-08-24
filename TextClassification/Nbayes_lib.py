@@ -3,6 +3,7 @@ import numpy as np
 import pickle
 import sys
 import os
+import gc
 
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0] + "/Support/chapter02"
@@ -51,14 +52,20 @@ class NBayes(object):
     def makeTrain(self, trainMatrix, classVec):
         self.makeByClassMap(classVec)  # 计算每个分类在总类别集合中出现的概率：P(yi)
         self.doclength = np.shape(trainMatrix)[0]  # 统计文本数
-
-        self.vocabularys = [word for trainVec in trainMatrix for word in trainVec]  # 把字典集合转化为list放入字典顺序表
+        vocabularySet = set()
+        for trainVec in trainMatrix:
+            for word in trainVec:  # 把字典集合转化为list放入字典顺序表
+                vocabularySet.add(word)
+        self.vocabularys =list(vocabularySet)
+        del vocabularySet
         self.vocabularyIndex = {name: index for index, name in enumerate(self.vocabularys)}  # 索引序列
         self.vocablen = len(self.vocabularys)  # 记录总词数
 
         # 统计每个文本的词频,统计每个词的调用文件数
         # self.calc_wordfreq(trainSet)
+        gc.collect()
         self.calTf_Idf(trainMatrix)  # 生成tf-idf权值
+        gc.collect()
         self.makeTdm()  # 按分类累计向量空间的每维值：P(x|yi),X词在当前类别出现的次数/类别下所有词数(yi)
 
     # 生成 tf-idf
@@ -132,12 +139,12 @@ class NBayes(object):
     # 构建测试集合
     def makeTest(self, testMatrix):
         testDetail = [{"all": 0, "notFind": 0, "setIndex": i} for i in range(np.shape(testMatrix)[0])]
-        testTfMatrix = np.zeros([1, self.vocablen])
+        testTfMatrix = np.zeros([np.shape(testMatrix)[0], self.vocablen])
         for i in range(len(testMatrix)):
             testDetail[i]["all"] = len(testMatrix[i])
             notFind = 0
             for word in testMatrix[i]:
-                index = self.vocabularyIndex[word]
+                index = self.vocabularyIndex[word] if word in self.vocabularyIndex else None
                 if index != None:
                     testTfMatrix[i, index] += 1
                 else:
@@ -154,7 +161,7 @@ class NBayes(object):
             retClass = 0
             for tdmVect, keyClass in zip(self.tdm, self.classList):
                 # P(x|yi)P(yi)
-                temp = np.sum(np.multiply(testTfMatrix[i], tdmVect) * self.Pcates[keyClass])
+                temp = np.sum(np.multiply(testTfMatrix[i], tdmVect) * self.classRateMap[keyClass])
                 if temp > predvalue:
                     predvalue = temp
                     retClass = keyClass
@@ -167,8 +174,9 @@ class NBayes(object):
     """
 
     def deleteStopWord(self, trainSet, stopWords):
+        stopWordSet=set(stopWords)
         for i in range(len(trainSet)):
             for word in trainSet[i]:
-                if word in stopWords or word == '':
+                if word in stopWordSet or len(word)<=0:
                     trainSet[i].remove(word)
         return trainSet

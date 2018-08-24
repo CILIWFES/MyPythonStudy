@@ -43,6 +43,7 @@ trainBunch = readBunch(trainPath)  # 读取训练集的Bunch
 testBunch = readBunch(testPath)  # 读取测试集的bunch
 
 NBayesPath = rootPath + "/train_word_bag/NBayes.dat"
+
 # nb = readBunch(NBayesPath)
 # trainSet, classSet = loadDataSet()
 nb = NBayes()
