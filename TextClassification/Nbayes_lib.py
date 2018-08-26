@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import pickle
-import sys
 import os
 import gc
+import copy
+from typing import List, Dict
 
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0] + "/Support/chapter02"
@@ -21,9 +22,11 @@ def loadDataSet():
                    ['maybe', 'not', 'take', 'him', 'to', 'dog', 'park', 'stupid'],
                    ['my', 'dalmation', 'is', 'so', 'cute', 'I', 'love', 'him', 'my'],
                    ['stop', 'posting', 'stupid', 'worthless', 'garbage'],
-                   ['mr', 'licks', 'ate', 'my', 'steak', 'how', 'to', 'stop', 'him'],
+                   ['mr', 'licks', 'ate', 'umy', 'steak', 'how', '84', '8stop', 'asawsx'],
+                   ['mr554', 'licks', 'ate', 'umy', 'steak', 'how', 'ftdto', '8stop', 'asawsx'],
+                   ['mr', 'licks', 'ate', 'umy', 'st55eak', 'how', 'ftdto', '8stop', 'asawsx'],
                    ['quit', 'buying', 'worthless', 'dog', 'food', 'stupid']]
-    classVec = [0, 1, 0, 1, 0, 1]  # 1 is abusive, 0 not
+    classVec = [0, 1, 0, 1, 3, 3, 3, 1]  # 1 is abusive, 0 not
     return postingList, classVec
 
 
@@ -34,149 +37,195 @@ def self(path, bunchobj):
     file_obj.close()
 
 
+isTFIDF = True
+
+
+class ClassData(object):
+    def __init__(self, classIndex, label, vocaLength, rate):
+        self.label = label
+        self.vocaLength = vocaLength
+        self.classIndex = classIndex
+        self.tfs = []
+        self.rate = rate
+        self.tdm = None
+
+    def putTf(self, tf):
+        self.tfs.append(tf)
+        return self.tfs
+
+    def calPXY(self, idf):
+        self.tdm = np.zeros([1, self.vocaLength])
+        for tf in self.tfs:
+            self.tdm += np.multiply(tf, idf)
+        self.tdm /= float(np.sum(self.tdm))
+
+    def toPredict(self, testVec):
+
+        if isTFIDF:
+            weight = np.sum(np.multiply(self.tdm, testVec))  # 这种效果比上面好.上面的符合理论
+        else:
+            weight = np.sum(np.log(np.multiply(self.tdm, testVec) + 1))  # 朴素贝叶斯
+        return weight
+
+
 class NBayes(object):
     def __init__(self):
         self.vocabularys = []  # 词典
         self.vocabularyIndex = {}  # 字典表记录词典索引
-        self.idf = 0  # 词典的idf权值向量
-        self.tf = 0  # 训练集的权值矩阵
-        self.tf_idf = 0  # tf_idf
-        self.tdm = 0  # P(x|yi)
-        self.classRateMap = {}  # P(yi)--是个类别字典,结构Pcates[label]
-        self.classList = []
-        self.classVec = []  # 对应每个文本的分类，是个外部导入的列表
-        self.doclength = 0  # 文本训练集数
-        self.vocablen = 0  # 词典词长
+        self.classMap = {}  # P(yi)--是个类别字典,结构Pcates[label]
+        self.stopWordDict = None
+        self.idf = None
+        self.classIndex: Dict = None
 
-    #	加载训练集并生成词典，以及tf, idf值
     def makeTrain(self, trainMatrix, classVec):
-        self.makeByClassMap(classVec)  # 计算每个分类在总类别集合中出现的概率：P(yi)
-        self.doclength = np.shape(trainMatrix)[0]  # 统计文本数
-        vocabularySet = set()
-        for trainVec in trainMatrix:
-            for word in trainVec:  # 把字典集合转化为list放入字典顺序表
-                vocabularySet.add(word)
-        self.vocabularys =list(vocabularySet)
-        del vocabularySet
-        self.vocabularyIndex = {name: index for index, name in enumerate(self.vocabularys)}  # 索引序列
-        self.vocablen = len(self.vocabularys)  # 记录总词数
 
-        # 统计每个文本的词频,统计每个词的调用文件数
-        # self.calc_wordfreq(trainSet)
-        gc.collect()
-        self.calTf_Idf(trainMatrix)  # 生成tf-idf权值
+        self.vocabularys = list(set([word for i in range(len(trainMatrix)) for word in trainMatrix[i]]))
+        self.vocabularyIndex = {name: index for index, name in enumerate(self.vocabularys)}  # 索引序列
+
+        self.makeClassMap(classVec)  # 计算每个分类在总类别集合中出现的概率：P(yi)
+        if isTFIDF:
+            self.calTfIdf(trainMatrix, classVec)  # 生成tf-idf权值
+        else:
+            self.calWordFreq(trainMatrix, classVec)  # 朴素贝叶斯
+
         gc.collect()
         self.makeTdm()  # 按分类累计向量空间的每维值：P(x|yi),X词在当前类别出现的次数/类别下所有词数(yi)
 
     # 生成 tf-idf
-    def calTf_Idf(self, trainMatrix):
-        self.idf = np.zeros([1, self.vocablen])
-        self.tf = np.zeros([self.doclength, self.vocablen])
+    def calTfIdf(self, trainMatrix, classVec):
+        idf = np.zeros([len(self.classIndex), len(self.vocabularys)])
 
-        for i in range(self.doclength):
+        for i in range(np.shape(trainMatrix)[0]):
+            tf = np.zeros([1, len(self.vocabularys)])
             if i % 100 == 0:
                 print("第", i + 1, "次运行")
+            classData: ClassData = self.classMap[classVec[i]]
             for word in set(trainMatrix[i]):
                 index = self.vocabularyIndex[word]
-                self.tf[i, index] += trainMatrix[i].count(word)
-                self.idf[0, index] += 1
+                tf[0, index] += trainMatrix[i].count(word)
+                idf[self.classIndex[classVec[i]], index] += 1
             # 统计文本词频TF
-            self.tf[i] = self.tf[i] / float(np.alen(trainMatrix[i]))
-        self.idf = np.log(float(self.doclength) / self.idf)
-        self.tf_idf = np.multiply(self.tf, self.idf)  # 矩阵与向量的点乘
-        return self.tf_idf
+            tf[0] = tf[0] / float(np.sum(tf[0]))
+            classData.putTf(tf)
+        self.idf = np.log(float(np.shape(trainMatrix)[0]) / np.sum(idf, axis=0))  # 理论上要这个
+        idf = idf.clip(max=1)
+        idf = np.sum(idf, axis=0)
+        self.idf *= np.log(float(len(self.classIndex)) / idf)  # 我加了这个
 
     """
     生成普通的词频向量
     统计词频
     统计每个词的调用文件
+    适配TFIDF
     """
 
-    def calc_wordfreq(self, trainMatrix):
-        # idf为逆文件频率
-        self.idf = np.zeros([1, self.vocablen])  # [[词0,词1,........,词n-1]]
-        # 每个文件:每个词出现数
-        self.tf = np.zeros([self.doclength, self.vocablen])  # 训练集文件数*词典数
-        for i in range(self.doclength):  # 遍历所有的文本
+    def calWordFreq(self, trainMatrix, classVec):
+        self.idf = np.ones([1, len(self.vocabularys)])
+        for i in range(np.shape(trainMatrix)[0]):
+            tf = np.zeros([1, len(self.vocabularys)])
             if i % 100 == 0:
                 print("第", i + 1, "次运行")
+            classData: ClassData = self.classMap[classVec[i]]
             for word in set(trainMatrix[i]):
                 index = self.vocabularyIndex[word]
-                self.tf[i, index] += trainMatrix[i].count(word)
-                self.idf[0, index] += 1
-
-        self.tf_idf = self.tf
+                tf[0, index] += trainMatrix[i].count(word)
+                classData.putTf(tf)
 
     """
     生成分类字典,统计每个类别出现的概率P(yi)
     生成分类索引字典
     """
 
-    def makeByClassMap(self, classVec):
-        self.classVec = classVec  # 写入
-        classSet = set(self.classVec)
-        self.classList = list(classSet)
-        for label in classSet:  # 对分类进行去重遍历
-            # 计算每个分类再classVec中的概率
-            self.classRateMap[label] = float(self.classVec.count(label)) / float(np.alen(self.classVec))
+    def makeClassMap(self, classVec):
+        classList = list(set(classVec))
+        for index, label in enumerate(classList):  # 对分类进行去重遍历
+            rate = float(classVec.count(label)) / float(np.alen(classVec))
+            self.classMap[label] = ClassData(index, label, np.alen(self.vocabularys), rate)
+        self.classIndex = {k: i for i, (k, v) in enumerate(self.classMap.items())}
 
     """
      按分类计算P(x|yi)
     """
 
     def makeTdm(self):
-        self.tdm = np.zeros([len(self.classList), self.vocablen])  # 每个类别: 每个词的出现的概率
-        sumlist = np.zeros([len(self.classList), 1])  # 统计每个类别在类别向量出现的总次数
+        print("构建分类权重")
+        for label, classData in self.classMap.items():
+            classData.calPXY(self.idf)
+        print("分类权重构建完毕")
 
-        for i in range(self.doclength):  # 遍历每个文件
-            self.tdm[self.classList.index(self.classVec[i])] += self.tf_idf[i]  # 按类别统计:每个词权重总数
+    def getDumpDate(self):
+        dictData = {}
+        dictData["vocabularys"] = self.vocabularys
+        dictData["vocabularyIndex"] = self.vocabularyIndex
+        dictData["classMap"] = self.classMap
+        dictData["stopWordDict"] = self.stopWordDict
+        return dictData
 
-        for i in range(len(self.classList)):  # 遍历类别
-            sumlist[i] = np.sum(self.tdm[i])  # 统计每个分类的所有词频
-
-        self.tdm = self.tdm / sumlist  # P(x|yi)计算当前分类下X词出现的概率,X词在当前类别出现的次数/类别下所有词数(yi)
+    def loadDumpDate(self, dictData):
+        self.vocabularys = dictData["vocabularys"]
+        self.vocabularyIndex = dictData["vocabularyIndex"]
+        self.classMap = dictData["classMap"]
+        self.stopWordDict = dictData["stopWordDict"]
+        return self
 
     # 构建测试集合
-    def makeTest(self, testMatrix):
-        testDetail = [{"all": 0, "notFind": 0, "setIndex": i} for i in range(np.shape(testMatrix)[0])]
-        testTfMatrix = np.zeros([np.shape(testMatrix)[0], self.vocablen])
-        for i in range(len(testMatrix)):
-            testDetail[i]["all"] = len(testMatrix[i])
-            notFind = 0
-            for word in testMatrix[i]:
-                index = self.vocabularyIndex[word] if word in self.vocabularyIndex else None
-                if index != None:
-                    testTfMatrix[i, index] += 1
-                else:
-                    notFind += 1
-            testDetail[i]["notFind"] = notFind
-        return testTfMatrix, testDetail
+    def makeTest(self):
+        print("构造预测函数")
 
-    # 输出分类类别
-    def predict(self, testTfMatrix):
-        predClass = list()
+        def predict(testMatrix, nb: NBayes):
+            print("准备预测")
+            testMatrix = nb.deleteStopWord(testMatrix)
+            testDetail = [{"matrixIndex": i, "all": 0, "notFind": 0} for i in range(np.shape(testMatrix)[0])]
+            testTfMatrix = np.zeros([np.shape(testMatrix)[0], len(nb.vocabularys)])
+            for i in range(np.shape(testTfMatrix)[0]):
+                testDetail[i]["all"] = len(testMatrix[i])
+                notFind = 0
+                for word in testMatrix[i]:
+                    index = nb.vocabularyIndex[word] if word in nb.vocabularyIndex else None
+                    if index is not None:
+                        testTfMatrix[i, index] += 1
+                    else:
+                        notFind += 1
+                testDetail[i]["notFind"] = notFind
 
-        for i in range(np.shape(testTfMatrix)[0]):
-            predvalue = 0
-            retClass = 0
-            for tdmVect, keyClass in zip(self.tdm, self.classList):
-                # P(x|yi)P(yi)
-                temp = np.sum(np.multiply(testTfMatrix[i], tdmVect) * self.classRateMap[keyClass])
-                if temp > predvalue:
-                    predvalue = temp
-                    retClass = keyClass
-            predClass.append(retClass)
+                testTfMatrix[i] = testTfMatrix[i] / float(np.sum(testTfMatrix[i]))
 
-        return predClass
+            testClassList = [0] * np.shape(testTfMatrix)[0]
+            print("开始预测")
+            for i in range(np.shape(testTfMatrix)[0]):
+                predvalue = 0
+                retClass = 0
+                for label, classData in nb.classMap.items():
+                    # P(x|yi)P(yi)
+                    value = classData.toPredict(testTfMatrix[i])
+                    if value > predvalue:
+                        predvalue = value
+                        retClass = label
+                testClassList[i] = retClass
+            print("预测结束")
+            return testClassList, testDetail
+
+        return predict
 
     """
     去除停用词
     """
 
-    def deleteStopWord(self, trainSet, stopWords):
-        stopWordSet=set(stopWords)
-        for i in range(len(trainSet)):
-            for word in trainSet[i]:
-                if word in stopWordSet or len(word)<=0:
-                    trainSet[i].remove(word)
-        return trainSet
+    def deleteStopWord(self, matrix, stopWords=None):
+        if (stopWords is not None):
+            self.stopWordDict = set(stopWords)
+        print("正在删除停用词")
+        for i in range(len(matrix)):
+            while '' in matrix[i]:
+                matrix[i].remove('')
+
+            while '\ufeff' in matrix[i]:
+                matrix[i].remove('\ufeff')
+
+            for j in range(len(matrix[i]) - 1, -1, -1):
+                word = matrix[i][j]
+                if word in self.stopWordDict:
+                    matrix[i].pop(j)
+
+        print("停用词删除完毕")
+        return matrix

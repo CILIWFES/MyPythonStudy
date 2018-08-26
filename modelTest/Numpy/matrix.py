@@ -35,7 +35,6 @@ print(myOnes + myRand)
 print(10 * myRand)
 
 # 矩阵求和(逐个列向量求和)
-
 print(np.sum(myRand))
 
 print(np.sum(myMatrix))
