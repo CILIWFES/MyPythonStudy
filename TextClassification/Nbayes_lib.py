@@ -57,14 +57,17 @@ class ClassData(object):
         self.tdm = np.zeros([1, self.vocaLength])
         for tf in self.tfs:
             self.tdm += np.multiply(tf, idf)
-        self.tdm /= float(np.sum(self.tdm))
+        if isTFIDF:
+            self.tdm /= float(np.shape(self.tfs)[0])
+        else:
+            self.tdm /= float(np.shape(self.tfs)[0])
 
     def toPredict(self, testVec):
 
         if isTFIDF:
             weight = np.sum(np.multiply(self.tdm, testVec))  # 这种效果比上面好.上面的符合理论
         else:
-            weight = np.sum(np.log(np.multiply(self.tdm, testVec) + 1))  # 朴素贝叶斯
+            weight = np.sum(np.log(np.multiply(self.tdm, testVec) + 1)) * self.rate  # 朴素贝叶斯
         return weight
 
 
@@ -107,15 +110,13 @@ class NBayes(object):
             # 统计文本词频TF
             tf[0] = tf[0] / float(np.sum(tf[0]))
             classData.putTf(tf)
-        self.idf = np.log(float(np.shape(trainMatrix)[0]) / np.sum(idf, axis=0))  # 理论上要这个
+        self.idf = np.log(float(np.shape(trainMatrix)[0] + 1) / (np.sum(idf, axis=0)))  # 理论上要这个
         idf = idf.clip(max=1)
         idf = np.sum(idf, axis=0)
-        self.idf *= np.log(float(len(self.classIndex)) / idf)  # 我加了这个
+        self.idf *= np.log(float(len(self.classIndex) + 1) / (idf))  # 我加了这个
 
     """
-    生成普通的词频向量
-    统计词频
-    统计每个词的调用文件
+    生成词频
     适配TFIDF
     """
 
@@ -129,7 +130,8 @@ class NBayes(object):
             for word in set(trainMatrix[i]):
                 index = self.vocabularyIndex[word]
                 tf[0, index] += trainMatrix[i].count(word)
-                classData.putTf(tf)
+            tf[0, index] /= np.sum(tf[0, index])
+            classData.putTf(tf)
 
     """
     生成分类字典,统计每个类别出现的概率P(yi)
@@ -157,6 +159,8 @@ class NBayes(object):
         dictData = {}
         dictData["vocabularys"] = self.vocabularys
         dictData["vocabularyIndex"] = self.vocabularyIndex
+        for label, classData in self.classMap.items():
+            classData.tfs = None
         dictData["classMap"] = self.classMap
         dictData["stopWordDict"] = self.stopWordDict
         return dictData
@@ -214,14 +218,10 @@ class NBayes(object):
     def deleteStopWord(self, matrix, stopWords=None):
         if (stopWords is not None):
             self.stopWordDict = set(stopWords)
+            self.stopWordDict.add("")
+            self.stopWordDict.add('\ufeff')
         print("正在删除停用词")
         for i in range(len(matrix)):
-            while '' in matrix[i]:
-                matrix[i].remove('')
-
-            while '\ufeff' in matrix[i]:
-                matrix[i].remove('\ufeff')
-
             for j in range(len(matrix[i]) - 1, -1, -1):
                 word = matrix[i][j]
                 if word in self.stopWordDict:

@@ -1,56 +1,69 @@
 # -*- coding: utf-8 -*-
+import os
+import numpy as np
+import pickle
+import sys
+
+curPath = os.path.abspath(os.path.dirname(__file__))
+rootPath = os.path.split(curPath)[0] + "/Support/chapter02"
 
 
-from numpy import *
-import operator
-from TextClassification.Nbayes_lib import *
-from TextClassification.kNN import *
+# 读取文件
+def readFile(readPath):
+    fp = open(readPath, "rb")
+    content = fp.read()
+    content = content.decode(encoding='utf-8')  # 解码为字符码
+    fp.close()
+    return content
+
+
+# 读取停用词
+stopworgPath = rootPath + "/train_word_bag/hlt_stop_words.txt"
+stopList = readFile(stopworgPath).splitlines()
+
+
+def readBunch(path):
+    fileObj = open(path, "rb")
+    bunch = pickle.load(fileObj)
+    fileObj.close()
+    return bunch
+
+
+def writeBunch(path, bunch):
+    fileObj = open(path, "wb")
+    pickle.dump(bunch, fileObj)
+    fileObj.close()
+
+def deleteStopWord( matrix, stopWords=None):
+    stopWordDict = set(stopWords)
+    print("正在删除停用词")
+    for i in range(len(matrix)):
+        while '' in matrix[i]:
+            matrix[i].remove('')
+        while '\ufeff' in matrix[i]:
+            matrix[i].remove('\ufeff')
+        for j in range(len(matrix[i]) - 1, -1, -1):
+            word = matrix[i][j]
+            if word in stopWordDict:
+                matrix[i].pop(j)
+    print("停用词删除完毕")
+    return matrix
 
 
 # 配置utf-8输出环境
+sys.getdefaultencoding()
+
+trainPath = rootPath + "/train_word_bag/trainTfidfSpace.dat"
+testPath = rootPath + "/test_word_bag/testTfidfSpace.dat"
+trainBunch = readBunch(trainPath)  # 读取训练集的Bunch
+testBunch = readBunch(testPath)  # 读取测试集的bunch
 
 
-# 夹角余弦距离公式
-def cosdist(vector1, vector2):
-    return dot(vector1, vector2) / (linalg.norm(vector1) * linalg.norm(vector2))
 
-
-# kNN分类器
-# 测试集：testdata
-# 训练集：trainSet
-# 类别标签：listClasses
-# k:k个邻居数
-def classify(testdata, trainSet, listClasses, k):
-    # 返回样本集的行数
-    dataSetSize = trainSet.shape[0]
-    # 计算测试集与训练集之间的距离：夹角余弦
-    distances = array(zeros(dataSetSize))
-    for indx in range(dataSetSize):
-        distances[indx] = cosdist(testdata, trainSet[indx])
-    # 5.根据生成的夹角余弦按从大到小排序,结果为索引号
-    sortedDistIndicies = argsort(-distances)
-    classCount = {}
-    # 获取角度最小的前三项作为参考项          
-    for i in range(k):  # i = 0~(k-1)  	  
-        # 按序号顺序返回样本集对应的类别标签
-        voteIlabel = listClasses[sortedDistIndicies[i]]
-        # 为字典classCount赋值,相同key，其value加1
-        # key:voteIlabel，value: 符合voteIlabel标签的训练集数 
-        classCount[voteIlabel] = classCount.get(voteIlabel, 0) + 1
-    # 对分类字典classCount按value重新排序
-    # sorted(data.iteritems(), key=operator.itemgetter(1), reverse=True) 
-    # 该句是按字典值排序的固定用法
-    # classCount.iteritems()：字典迭代器函数
-    # key：排序参数；operator.itemgetter(1)：多级排序
-    sortedClassCount = sorted(classCount.items(), key=operator.itemgetter(1), reverse=True)
-    # 返回序最高的一项
-    return sortedClassCount[0][0]
-
-
-k = 3
-testdata=[0.2,0.2]
-dataSet,labels = createDataSet()
-print (classify(mat(testdata), mat(dataSet), labels, k))
+k = 10
+testdata = deleteStopWord(testBunch.contents,stopList)
+dataSet, labels = deleteStopWord(trainBunch.contents,stopList), trainBunch.label
+print(classify(testdata, dataSet, labels, k))
 # dataSet, listClasses = loadDataSet()
 # nb = NBayes()
 # nb.train_set(dataSet, listClasses)
