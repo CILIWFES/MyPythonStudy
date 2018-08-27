@@ -155,7 +155,7 @@ class NBayes(object):
             classData.calPXY(self.idf)
         print("分类权重构建完毕")
 
-    def getDumpDate(self):
+    def getDumpData(self):
         dictData = {}
         dictData["vocabularys"] = self.vocabularys
         dictData["vocabularyIndex"] = self.vocabularyIndex
@@ -165,7 +165,7 @@ class NBayes(object):
         dictData["stopWordDict"] = self.stopWordDict
         return dictData
 
-    def loadDumpDate(self, dictData):
+    def loadDumpData(self, dictData):
         self.vocabularys = dictData["vocabularys"]
         self.vocabularyIndex = dictData["vocabularyIndex"]
         self.classMap = dictData["classMap"]

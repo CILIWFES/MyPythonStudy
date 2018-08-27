@@ -3,10 +3,12 @@ import os
 import numpy as np
 import pickle
 import sys
-
+import gc
+from TextClassification.kNN_lib import *
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0] + "/Support/chapter02"
 
+kNNPath = rootPath + "/train_word_bag/kNN.dat"
 
 # 读取文件
 def readFile(readPath):
@@ -34,37 +36,56 @@ def writeBunch(path, bunch):
     pickle.dump(bunch, fileObj)
     fileObj.close()
 
-def deleteStopWord( matrix, stopWords=None):
-    stopWordDict = set(stopWords)
-    print("正在删除停用词")
-    for i in range(len(matrix)):
-        while '' in matrix[i]:
-            matrix[i].remove('')
-        while '\ufeff' in matrix[i]:
-            matrix[i].remove('\ufeff')
-        for j in range(len(matrix[i]) - 1, -1, -1):
-            word = matrix[i][j]
-            if word in stopWordDict:
-                matrix[i].pop(j)
-    print("停用词删除完毕")
-    return matrix
-
-
-# 配置utf-8输出环境
-sys.getdefaultencoding()
 
 trainPath = rootPath + "/train_word_bag/trainTfidfSpace.dat"
 testPath = rootPath + "/test_word_bag/testTfidfSpace.dat"
 trainBunch = readBunch(trainPath)  # 读取训练集的Bunch
 testBunch = readBunch(testPath)  # 读取测试集的bunch
 
+# testBunch.contents=trainBunch.contents
+# testBunch.label=trainBunch.label
+# testBunch.fileNames=trainBunch.fileNames
 
+times = 10
+knn=kNN()
 
-k = 10
-testdata = deleteStopWord(testBunch.contents,stopList)
-dataSet, labels = deleteStopWord(trainBunch.contents,stopList), trainBunch.label
-print(classify(testdata, dataSet, labels, k))
-# dataSet, listClasses = loadDataSet()
-# nb = NBayes()
-# nb.train_set(dataSet, listClasses)
-# print(classify(nb.tf[3], nb.tf, listClasses, k))
+if not os.path.exists(kNNPath):  # 不是文件夹
+    trainSet = knn.deleteStopWord(trainBunch.contents, stopList)
+    knn.makeTrain(trainBunch.contents, trainBunch.label)
+    print("开始序列化")
+    gc.collect()
+    writeBunch(kNNPath, knn.getDumpData())
+    print("序列化完毕")
+else:
+    dictData = readBunch(kNNPath)
+    print("读取文件中")
+    knn = knn.loadDumpData(dictData)
+
+print("加载成功")
+gc.collect()
+predict = knn.makeTest()
+retClassList, testDetail = predict(testBunch.contents, knn,times)
+print("完成预测,正在信息汇总")
+
+printData = []
+labelRDict = {word: 0 for word in testBunch.label}
+labelEDict = {word: 0 for word in testBunch.label}
+
+for dataDict in testDetail:
+    printDict = {}
+    index = dataDict['matrixIndex']
+    printDict["fileName"] = testBunch.fileNames[index]
+    printDict["className"] = retClassList[index]
+    printDict["identRate"] = (dataDict['all'] - dataDict['notFind']) * 1.0 / dataDict['all']
+    printData.append(printDict)
+    index = dataDict['matrixIndex']
+    if retClassList[index] == testBunch.label[index]:
+        labelRDict[testBunch.label[index]] += 1
+    else:
+        labelEDict[testBunch.label[index]] += 1
+
+for printDict in printData:
+    print("文件:", printDict["fileName"], "预测类别:", printDict["className"], "识别率", printDict["identRate"] * 100, "%")
+
+for word, i in labelRDict.items():
+    print(word, "的准确率为:", labelRDict[word] / float(labelRDict[word] + labelEDict[word]) * 100, "%")

@@ -58,12 +58,12 @@ if not os.path.exists(NBayesPath):  # 不是文件夹
     nb.makeTrain(trainBunch.contents, trainBunch.label)
     print("开始序列化")
     gc.collect()
-    writeBunch(NBayesPath, nb.getDumpDate())
+    writeBunch(NBayesPath, nb.getDumpData())
     print("序列化完毕")
 else:
     dictData = readBunch(NBayesPath)
     print("读取文件中")
-    nb = nb.loadDumpDate(dictData)
+    nb = nb.loadDumpData(dictData)
 
 print("加载成功")
 gc.collect()

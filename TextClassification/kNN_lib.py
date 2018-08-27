@@ -1,42 +1,6 @@
 import numpy as np
 from typing import Dict
-
-
-# 夹角余弦距离公式
-def cosdist(vector1, vector2):
-    return np.dot(vector1, vector2) / (np.linalg.norm(vector1) * np.linalg.norm(vector2))
-
-
-# kNN分类器
-# 测试集：testdata
-# 训练集：trainSet
-# 类别标签：listClasses
-# k:k个邻居数
-def classify(testdata, trainSet, listClasses, k):
-    # 返回样本集的行数
-    dataSetSize = np.shape(trainSet)[0]
-    # 计算测试集与训练集之间的距离：夹角余弦
-    distances = np.array(np.zeros(dataSetSize))
-    for indx in range(dataSetSize):
-        distances[indx] = cosdist(testdata, trainSet[indx])
-    # 5.根据生成的夹角余弦按从大到小排序,结果为索引号
-    sortedDistIndicies = np.argsort(-distances)
-    classCount = {}
-    # 获取角度最小的前三项作为参考项
-    for i in range(k):  # i = 0~(k-1)
-        # 按序号顺序返回样本集对应的类别标签
-        voteIlabel = listClasses[sortedDistIndicies[i]]
-        # 为字典classCount赋值,相同key，其value加1
-        # key:voteIlabel，value: 符合voteIlabel标签的训练集数
-        classCount[voteIlabel] = classCount.get(voteIlabel, 0) + 1
-    # 对分类字典classCount按value重新排序
-    # sorted(data.iteritems(), key=operator.itemgetter(1), reverse=True)
-    # 该句是按字典值排序的固定用法
-    # classCount.iteritems()：字典迭代器函数
-    # key：排序参数；operator.itemgetter(1)：多级排序
-    sortedClassCount = sorted(classCount.items(), key=np.operator.itemgetter(1), reverse=True)
-    # 返回序最高的一项
-    return sortedClassCount[0][0]
+from collections import Counter
 
 
 class PointData(object):
@@ -46,7 +10,11 @@ class PointData(object):
         self.tf = []
 
     def toPredict(self, testVec):
-        return np.sqrt(np.sum(np.power(self.tf - testVec, 2)))
+        testVec = np.mat(testVec)
+        # return np.sqrt((self.tf[0] - testVec)*(self.tf[0] - testVec).T), self.label#欧式距离
+        return np.sum(np.abs(self.tf[0] - testVec)), self.label#曼哈顿距离
+        # return np.max(np.abs(self.tf[0] - testVec)), self.label#切比雪夫距离
+        # return self.tf * testVec.T / (np.linalg.norm(testVec) * np.linalg.norm(self.tf)), self.label#扣脚余弦
 
 
 class kNN(object):
@@ -54,35 +22,48 @@ class kNN(object):
         self.vocabularys = []  # 词典
         self.vocabularyIndex = {}  # 字典表记录词典索引
         self.stopWordDict = None
-        self.classIndex = None
-        self.classMap: Dict = None
+        self.points = []
+
+    def getDumpData(self):
+        dict = {}
+
+        dict["vocabularys"] = self.vocabularys
+        dict["vocabularyIndex"] = self.vocabularyIndex
+        dict["stopWordDict"] = self.stopWordDict
+        dict["points"] = self.points
+        return dict
+
+    def loadDumpData(self, dict):
+        self.points = dict["points"]
+        self.vocabularys = dict["vocabularys"]
+        self.vocabularyIndex = dict["vocabularyIndex"]
+        self.stopWordDict = dict["stopWordDict"]
+        return self
 
     def makeTrain(self, trainMatrix, classVec):
         self.vocabularys = list(set([word for i in range(len(trainMatrix)) for word in trainMatrix[i]]))
         self.vocabularyIndex = {name: index for index, name in enumerate(self.vocabularys)}  # 索引序列
-        self.makeClassMap(classVec)
         self.calWordFre(trainMatrix, classVec)
 
     def calWordFre(self, trainMatrix, classVec):
-        self.idf = np.ones([1, len(self.vocabularys)])
         for i in range(np.shape(trainMatrix)[0]):
             tf = np.zeros([1, len(self.vocabularys)])
             if i % 100 == 0:
                 print("第", i + 1, "次运行")
-            pointData = PointData(i, classVec[i])
             for word in set(trainMatrix[i]):
                 index = self.vocabularyIndex[word]
                 tf[0, index] += trainMatrix[i].count(word)
             tf /= np.sum(tf)
+            pointData = PointData(i, classVec[i])
             pointData.tf = tf
-            self.classMap[classVec[i]].append(pointData)
+            self.points.append(pointData)
 
         # 构建测试集合
 
     def makeTest(self):
         print("构造预测函数")
 
-        def predict(testMatrix, knn:kNN,times):
+        def predict(testMatrix, knn: kNN, times):
             print("准备预测")
             testMatrix = knn.deleteStopWord(testMatrix)
             testDetail = [{"matrixIndex": i, "all": 0, "notFind": 0} for i in range(np.shape(testMatrix)[0])]
@@ -103,28 +84,26 @@ class kNN(object):
             testClassList = [0] * np.shape(testTfMatrix)[0]
             print("开始预测")
             for i in range(np.shape(testTfMatrix)[0]):
-                values=[]
-                for label, pointData in knn.classMap.items():
+                print("第", i, "个文件开始预测")
+                values = [(10000, 10000)] * times
+                maxData = [10000, 0]  # val,index
+                for pointData in knn.points:
                     # P(x|yi)P(yi)
-                    value = pointData.toPredict(testTfMatrix[i])
-                    if value > predvalue:
-                        predvalue = value
-                        retClass = label
-                testClassList[i] = retClass
+                    value, label = pointData.toPredict(testTfMatrix[i])
+
+                    if value < maxData[0]:
+                        values[maxData[1]] = (value, label)
+                        maxTemp = max(values, key=lambda x: x[0])
+                        maxData[1] = values.index(maxTemp)
+                        maxData[0] = maxTemp[0]
+                values = [item[1] for item in values]
+
+                testClassList[i] = Counter(values).most_common().pop(0)[0]
+                print(testClassList[i])
             print("预测结束")
             return testClassList, testDetail
 
         return predict
-    """
-       生成分类字典,统计每个类别出现的概率P(yi)
-       生成分类索引字典
-       """
-
-    def makeClassMap(self, classVec):
-        classList = list(set(classVec))
-        for index, label in enumerate(classList):  # 对分类进行去重遍历
-            self.classMap[label] = []
-        self.classIndex = {k: i for i, (k, v) in enumerate(self.classMap.items())}
 
     """
       去除停用词
