@@ -12,9 +12,9 @@ class PointData(object):
     def toPredict(self, testVec):
         testVec = np.mat(testVec)
         # return np.sqrt((self.tf[0] - testVec)*(self.tf[0] - testVec).T), self.label#欧式距离
-        # return np.sum(np.abs(self.tf[0] - testVec)), self.label  # 曼哈顿距离
+        return np.sum(np.abs(self.tf[0] - testVec)), self.label  # 曼哈顿距离
         # return np.max(np.abs(self.tf[0] - testVec)), self.label#切比雪夫距离
-        return -self.tf * testVec.T / (np.linalg.norm(testVec) * np.linalg.norm(self.tf)), self.label#扣脚余弦
+        # return -self.tf * testVec.T / (np.linalg.norm(testVec) * np.linalg.norm(self.tf)), self.label#扣脚余弦
 
 
 class kNN(object):

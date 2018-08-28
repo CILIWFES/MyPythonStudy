@@ -46,7 +46,7 @@ testBunch = readBunch(testPath)  # 读取测试集的bunch
 # testBunch.label=trainBunch.label
 # testBunch.fileNames=trainBunch.fileNames
 
-times = 3
+times = 5
 knn=kNN()
 
 if not os.path.exists(kNNPath):  # 不是文件夹
