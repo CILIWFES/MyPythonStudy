@@ -46,7 +46,7 @@ testBunch = readBunch(testPath)  # 读取测试集的bunch
 # testBunch.label=trainBunch.label
 # testBunch.fileNames=trainBunch.fileNames
 
-times = 10
+times = 3
 knn=kNN()
 
 if not os.path.exists(kNNPath):  # 不是文件夹
@@ -67,25 +67,8 @@ predict = knn.makeTest()
 retClassList, testDetail = predict(testBunch.contents, knn,times)
 print("完成预测,正在信息汇总")
 
-printData = []
-labelRDict = {word: 0 for word in testBunch.label}
-labelEDict = {word: 0 for word in testBunch.label}
 
-for dataDict in testDetail:
-    printDict = {}
-    index = dataDict['matrixIndex']
-    printDict["fileName"] = testBunch.fileNames[index]
-    printDict["className"] = retClassList[index]
-    printDict["identRate"] = (dataDict['all'] - dataDict['notFind']) * 1.0 / dataDict['all']
-    printData.append(printDict)
-    index = dataDict['matrixIndex']
-    if retClassList[index] == testBunch.label[index]:
-        labelRDict[testBunch.label[index]] += 1
-    else:
-        labelEDict[testBunch.label[index]] += 1
+from sklearn import metrics
+#classification_report函数构建了一个文本报告，用于展示主要的分类metrics
+print(metrics.classification_report(testBunch.label, retClassList))
 
-for printDict in printData:
-    print("文件:", printDict["fileName"], "预测类别:", printDict["className"], "识别率", printDict["identRate"] * 100, "%")
-
-for word, i in labelRDict.items():
-    print(word, "的准确率为:", labelRDict[word] / float(labelRDict[word] + labelEDict[word]) * 100, "%")

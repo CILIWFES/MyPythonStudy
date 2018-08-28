@@ -1,9 +1,8 @@
 # 导入贝叶斯包
 from sklearn.naive_bayes import MultinomialNB
-import sys
 import os
-from sklearn.datasets.base import Bunch
 import pickle
+import numpy as np
 
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0] + "/Support/chapter02"
@@ -31,23 +30,24 @@ testBunch = readBunch(testPath)  # 读取测试集的bunch
 clf = MultinomialNB(alpha=0.001).fit(trainBunch.tdm, trainBunch.label)
 
 # 预测分类结果
-predicted = clf.predict(testBunch.tdm)#dimension mismatch
+predicted = clf.predict(testBunch.tdm)  # dimension mismatch
+
 total = len(predicted)
 rate = 0
-for label, fileName, expctCate in zip(testBunch.label, testBunch.fileNames, predicted):
-    if label != expctCate:
-        rate += 1
-        print("文件", fileName, "实际类别:", label, "预测类别", expctCate)
+for fileName, expctCate in zip(testBunch.fileNames, predicted):
+    print("文件", fileName, "预测类别", expctCate)
 
-import numpy as np
 from sklearn import metrics
 
+"""
+precision:精度(预测类型为xx,xx类型的预测准确率,越大说明该类型越容易进行预测)
+recall:召回率/查准率(识别文件类型为xx,xx类型识别的准确率,越大说明该类型文件越容易被正确识别)
+f1-score:又称平衡F分数（balanced F Score），它被定义为精确率和召回率的调和平均数。
+support:对应类型的文件数
 
-# 定义分类精度函数
-def metricsResult(actual, predict):
-    print("精度:", metrics.precision_score(actual, predict))
-    print("召回率:", metrics.recall_score(actual, predict))
-    print("F-Score:", metrics.f1_score(actual, predict))
+一个数据库有500个文档，其中有50个文档符合定义。系统检索到75个文档，但是实际只有45个符合定义。则：
+召回率R=45/50=90%
+精度P=45/75=60%
+"""
 
-
-metricsResult(testBunch.label, predicted)
+print(metrics.classification_report(testBunch.label, predicted))

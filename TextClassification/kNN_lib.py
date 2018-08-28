@@ -12,9 +12,9 @@ class PointData(object):
     def toPredict(self, testVec):
         testVec = np.mat(testVec)
         # return np.sqrt((self.tf[0] - testVec)*(self.tf[0] - testVec).T), self.label#欧式距离
-        return np.sum(np.abs(self.tf[0] - testVec)), self.label#曼哈顿距离
+        # return np.sum(np.abs(self.tf[0] - testVec)), self.label  # 曼哈顿距离
         # return np.max(np.abs(self.tf[0] - testVec)), self.label#切比雪夫距离
-        # return self.tf * testVec.T / (np.linalg.norm(testVec) * np.linalg.norm(self.tf)), self.label#扣脚余弦
+        return -self.tf * testVec.T / (np.linalg.norm(testVec) * np.linalg.norm(self.tf)), self.label#扣脚余弦
 
 
 class kNN(object):
@@ -30,11 +30,18 @@ class kNN(object):
         dict["vocabularys"] = self.vocabularys
         dict["vocabularyIndex"] = self.vocabularyIndex
         dict["stopWordDict"] = self.stopWordDict
-        dict["points"] = self.points
+        loadPoints = [(point.tf, point.label) for point in self.points]
+        dict["points"] = loadPoints
         return dict
 
     def loadDumpData(self, dict):
-        self.points = dict["points"]
+        loadPoints = dict["points"]
+        points = []
+        for index, point in enumerate(loadPoints):
+            temp = PointData(index, point[1])
+            temp.tf = point[0]
+            points.append(temp)
+        self.points = points
         self.vocabularys = dict["vocabularys"]
         self.vocabularyIndex = dict["vocabularyIndex"]
         self.stopWordDict = dict["stopWordDict"]
