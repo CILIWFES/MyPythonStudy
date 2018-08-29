@@ -34,6 +34,14 @@ startTime = datetime.datetime.now()  # 起始时间
 # import distance.Distance
 # import dataVisualization.DataVisualization
 # import TextClassification.textStart
+class aaa():
+    pass
+
+
+kk = aaa()
+a = [aaa(), 22, 4, 5, 1, 87]
+b = ["3", 1, 234, "3", 2, 2, 2, 2]
+print(b+a)
 
 ###################################################################################################################
 endTime = datetime.datetime.now()  # 终止时间

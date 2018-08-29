@@ -3,8 +3,7 @@ import numpy as np
 import pickle
 import os
 import gc
-import copy
-from typing import List, Dict
+from typing import Dict
 
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0] + "/Support/chapter02"
