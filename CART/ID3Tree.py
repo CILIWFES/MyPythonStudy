@@ -7,22 +7,21 @@ import pickle
 from collections import Counter
 
 
-class ID3DTree(object):
+class ID3Tree(object):
     def __init__(self):
         self.tree = {}
         self.dataSet = []
         self.labels = []
 
-    def loadDataSet(self, path, labels):
-        recordlist = []
-        fp = open(path, "rb")  # 读取文件内容
-        content = fp.read()
-        content = content.decode(encoding='utf-8')  # 解码为字符码
-        fp.close()
-        rowlist = content.splitlines()  # 按行转换为一维表
-        recordlist = [row.split("\t") for row in rowlist if row.strip()]
-        self.dataSet = recordlist
-        self.labels = labels  # list[name]
+    def getDumpData(self):
+        data={}
+        data["tree"]=self.tree
+        data["labels"]=self.labels
+        return data
+    def loadDumpData(self,data):
+        self.tree=data["tree"]
+        self.labels=data["labels"]
+        return self
 
     def train(self):
         labels = copy.deepcopy(self.labels)
@@ -105,25 +104,14 @@ class ID3DTree(object):
                 cateList.append(featVec[-1])
         return cateList
 
-    def predict(self, inputTree, featLabels, testVec):  # 分类器
-        root = inputTree.keys()[0]  # 树根节点
+    def predict(self, inputTree, testVec):  # 分类器
+        root = list(inputTree.keys())[0]  # 树根节点
         secondDict = inputTree[root]  # value-子树结构或分类标签
-        featIndex = featLabels.index(root)  # 根节点在分类标签集中的位置
+        featIndex = self.labels.index(root)  # 根节点在分类标签集中的位置
         key = testVec[featIndex]  # 测试集数组取值
-        valueOfFeat = secondDict[key]  #
+        valueOfFeat = secondDict[str(key)]  #
         if isinstance(valueOfFeat, dict):
-            classLabel = self.predict(valueOfFeat, featLabels, testVec)  # 递归分类
+            classLabel = self.predict(valueOfFeat, testVec)  # 递归分类
         else:
             classLabel = valueOfFeat
         return classLabel
-
-    # 存储树到文件
-    def storeTree(self, inputTree, filename):
-        fw = open(filename, 'w')
-        pickle.dump(inputTree, fw)
-        fw.close()
-
-    # 从文件抓取树
-    def grabTree(self, filename):
-        fr = open(filename)
-        return pickle.load(fr)
