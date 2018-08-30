@@ -3,7 +3,6 @@
 from numpy import *
 import math
 import copy
-import pickle
 from collections import Counter
 
 
@@ -28,27 +27,40 @@ class ID3Tree(object):
         self.tree = self.buildTree(self.dataSet, labels)
 
     # 创建决策树主程序(递归)
-    def buildTree(self, dataSet, labels):
-        cateList = [data[-1] for data in dataSet]  # 抽取源数据集的决策标签列
-        # 程序终止条件1	: 如果classList只有一种决策标签，停止划分，返回这个决策标签
+    # dataList[[0,0,1,2,no],[0,1,0,2,yes]]训练数据集
+    # labels['age','student'......]标签名称
+    def buildTree(self, dataList, labels):
+        cateList = [data[-1] for data in dataList]  # 获取决策标签
+
+        # 程序终止条件1	: 如果cateList只有一种,继续分类没有意义结束递归,返回标签
+        # len(dataList[0])>1
         if cateList.count(cateList[0]) == len(cateList):
             return cateList[0]
+
         # 程序终止条件2: 如果数据集的第一个决策标签只有一个 返回这个决策标签
-        if len(dataSet[0]) == 1:
+        # len(dataList[0]) ==1 说明种类皆分类完毕
+        # 不过到这一步说明当前分类下存在即是True也是False的值
+        if len(dataList[0]) == 1:
             return self.maxCate(cateList)
+
         # 算法核心：
-        bestFeat = self.getBestFeat(dataSet)  # 返回数据集的最优特征轴：index
-        bestFeatLabel = labels[bestFeat]  # 通过最优特征轴(index)获取Name
+        bestFeatIndex = self.getBestFeat(dataList)  # 返回数据集的最优特征轴：index
+        bestFeatLabel = labels[bestFeatIndex]  # 通过最优特征轴(index)获取Name
         tree = {bestFeatLabel: {}}
         # 将特征值移除list
-        del (labels[bestFeat])  # 里面应该是获取即labels第bestFeat列的引用(即labels[bestFeat]),然后把这个引用删除(对象不删除引用计数-11)
-        # 抽取最优特征轴的列向量
-        uniqueVals = set([data[bestFeat] for data in dataSet])  # 获取最优特征下的分类
+        del (labels[bestFeatIndex])  # 里面应该是获取即labels第bestFeat列的引用(即labels[bestFeatIndex]),然后把这个引用删除(对象不删除引用计数-11)
+        # 抽取最优特征下的分类
+        uniqueVals = set([data[bestFeatIndex] for data in dataList])  # 获取最优特征下的分类
         for value in uniqueVals:
             subLabels = labels[:]  # 将labels复制一遍
-            splitDataset = self.splitDataSet(dataSet, bestFeat, value)  # 按最优特征列和值分割数据集
-            subTree = self.buildTree(splitDataset, subLabels)  # 构建子树
+
+            # 按最优特征列和值分割数据集[0,0,1,0,1,no]->[0,0,0,1,no]
+            splitDataset = self.splitDataSet(dataList, bestFeatIndex, value)
+            #返回dict
+            #{'0':{xxx},"1":"yes"}这样
+            subTree = self.buildTree(splitDataset, subLabels)  # 构建子树递归
             tree[bestFeatLabel][value] = subTree
+
         return tree
 
     def maxCate(self, catelist):  # 计算出现最多的类别标签
