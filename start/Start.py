@@ -2,6 +2,7 @@ import datetime
 import sys
 import os
 import numpy as np
+import treePlotter
 
 # curPath = os.path.abspath(os.path.dirname(__file__))
 # rootPath = os.path.split(curPath)[0]
@@ -13,7 +14,6 @@ print("Python学习测试程序")
 print("""运行开始
 -------------------------------------------------------------------------------------\n""")
 startTime = datetime.datetime.now()  # 起始时间
-
 
 ###################################################################################################################
 
@@ -34,15 +34,21 @@ startTime = datetime.datetime.now()  # 起始时间
 # import distance.Distance
 # import dataVisualization.DataVisualization
 # import TextClassification.textStart
-class aaa():
-    pass
 
 
-kk = aaa()
-a = [aaa(), 22, 4, 5, 1, 87]
-b = ["3", 1, 234, "3", 2, 2, 2, 2]
-print(b+a)
+a = ['2', 5]
+a = [eval(str(item)) for item in a]
+print(sum(a) / len(a))
 
+a = ['s', '2']
+b = ['s', '2']
+print(a + b)
+
+import numpy as np
+from collections import Counter
+saaa = np.mat([[0, 2, 5, 7, 3], [5, 8, 9, 7, 4], [5, 8, 9, 7, 4], [5, 8, 9, 7, 4], [5, 8, 9, 7, 4]])
+
+print(saaa.item(5))
 ###################################################################################################################
 endTime = datetime.datetime.now()  # 终止时间
 
