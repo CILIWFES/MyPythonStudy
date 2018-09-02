@@ -1,4 +1,4 @@
-from CART.ID3Tree import *
+from DecisionTree.ID3Tree import *
 import os
 import pickle
 # 树与分类结构的可视化
