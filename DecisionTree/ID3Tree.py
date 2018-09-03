@@ -121,7 +121,7 @@ class ID3Tree(object):
         secondDict = inputTree[root]  # value-子树结构或分类标签
         featIndex = self.labels.index(root)  # 根节点在分类标签集中的位置
         key = testVec[featIndex]  # 测试集数组取值
-        valueOfFeat = secondDict[str(key)]  #
+        valueOfFeat = secondDict[str(key)]
         if isinstance(valueOfFeat, dict):
             classLabel = self.predict(valueOfFeat, testVec)  # 递归分类
         else:

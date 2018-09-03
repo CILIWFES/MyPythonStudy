@@ -42,12 +42,12 @@ if not os.path.exists(C45SavePath):  # 不是文件夹
     dtree.train()
     print("持久化数据")
     saveDump(C45SavePath, dtree.getDumpData())
-    print("正在生成树")
-    tp.createPlot(dtree.tree)
+
 else:
     print("读取持久化")
     dtree.loadDumpData(readDump(C45SavePath))
 
 
-
+print("正在生成树")
+tp.createPlot(dtree.tree)
 print("预测结果为:", dtree.predict(dtree.tree, [0, 0, 0, 0]))
