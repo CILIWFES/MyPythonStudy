@@ -46,6 +46,7 @@ class CARTTree(object):
 
     # 连续型,计算方差
     # lst1与ls2皆为预测项
+    #也可以按区间,算区间内外的信息增益或者基尼系数
     def Continuous(self, lst1, lst2):
         avg1 = sum(lst1) / len(lst1)
         avg2 = sum(lst2) / len(lst2)
