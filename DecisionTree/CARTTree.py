@@ -8,9 +8,12 @@ class CARTTree(object):
         self.classList = []
         self.isDiscrete = True
         self.function = None
+        self.trainSet=None
+
 
     # 主函数入口
     def train(self, trainSet, classList, isDiscrete):
+        self.trainSet=trainSet
         # 选择要处理的数据类型,并对离散型数据进行转化
         self.classList = {k: indx for indx, k in enumerate(classList)}
         self.selectFunction(isDiscrete)
@@ -154,6 +157,14 @@ class CARTTree(object):
                 del tempLst
                 del tempDict
                 return self.predict(tree, testLst)
+
+    #行/列
+    def makeGenrator(self,rows,featurs,featurNames):
+        trainSetTemp=self.trainSet
+        def generator(choice,index=None):
+            trainSet=trainSetTemp
+
+
 
     def getDumpData(self):
         data = dict()

@@ -34,26 +34,11 @@ startTime = datetime.datetime.now()  # 起始时间
 # import distance.Distance
 # import dataVisualization.DataVisualization
 # import TextClassification.textStart
-
-import random
-def makeGenrator():
-    lst=[i for i in range(10)]
-    def foo(bb):
-        genrator=lst
-        if bb==1:
-            for indx in genrator:
-                yield indx
-        else:
-            x=yield len(genrator)
-            print(x)
-            yield 110
-
-    return foo
-
-fo2o=makeGenrator()
-k=fo2o(2)
-print(next(k))#获得len(genrator)
-print(k.send(1))#x=1并往下走,返回110
+dic={}
+if "ff" not in dic:
+    dic["ff"]=1
+else:
+    dic["ff"]+=1
 
 ###################################################################################################################
 endTime = datetime.datetime.now()  # 终止时间
