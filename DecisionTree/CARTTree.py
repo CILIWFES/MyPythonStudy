@@ -78,8 +78,8 @@ class CARTTree(object):
 
         # 递归结束判断
         # 1.
-        labelInfo=next(genrator("labelInfo"))
-        lenLabelInfo=len(labelInfo.most_common())
+        labelInfo = next(genrator("labelInfo"))
+        lenLabelInfo = len(labelInfo.most_common())
         if lenLabelInfo == 1:  # 正常结局
             return labelInfo.most_common()[0][0]
         elif lenLabelInfo == 2 and len(next(genrator("rows"))) <= 0:  # 错误数据的结局
@@ -91,7 +91,7 @@ class CARTTree(object):
         minValue = 100
         # 遍历条件,选择最优切分条件与最优切分点
         for indx in range(next(genrator("lenF"))):
-            featureInfo=next(genrator("featureInfo"))
+            featureInfo = next(genrator("featureInfo"))
             # 选择最小的分类
             minFeatureValue = 1.1
             minFeature = ''
