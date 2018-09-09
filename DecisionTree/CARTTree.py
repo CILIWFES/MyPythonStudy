@@ -1,5 +1,6 @@
 from collections import Counter
 from math import pow
+from DecisionTree import Genrator
 
 
 class CARTTree(object):
@@ -8,16 +9,25 @@ class CARTTree(object):
         self.classList = []
         self.isDiscrete = True
         self.function = None
-        self.trainSet=None
+        self.trainSet = None
 
+    def makeGenrator(self, featureIndexReal, featuresValue, beforGenerator):
+        rows = None
+        featurs = None
+        if beforGenerator is None:
+            rows = [i for i in range(len(self.trainSet))]
+            featurs = [i for i in range(len(self.trainSet[0]) - 1)]
+
+        Genrator.makeGenrator(self.trainSet, rows, featurs, featureIndexReal, featuresValue, beforGenerator)
 
     # 主函数入口
     def train(self, trainSet, classList, isDiscrete):
-        self.trainSet=trainSet
+        self.trainSet = trainSet
         # 选择要处理的数据类型,并对离散型数据进行转化
         self.classList = {k: indx for indx, k in enumerate(classList)}
         self.selectFunction(isDiscrete)
-        self.tree = self.buildTree(trainSet, classList)
+        rootGenrator = self.makeGenrator(None, None, None)
+        self.tree = self.buildTree(rootGenrator)
 
     def selectFunction(self, isDiscrete):
         if isDiscrete:
@@ -49,7 +59,7 @@ class CARTTree(object):
 
     # 连续型,计算方差
     # lst1与ls2皆为预测项
-    #也可以按区间,算区间内外的信息增益或者基尼系数
+    # 也可以按区间,算区间内外的信息增益或者基尼系数
     def Continuous(self, lst1, lst2):
         avg1 = sum(lst1) / len(lst1)
         avg2 = sum(lst2) / len(lst2)
@@ -64,34 +74,24 @@ class CARTTree(object):
         result2 = pow(result2 / float(len(lst2)), 0.5)
         return result1 + result2
 
-    def buildTree(self, trainSet, classSet):
+    def buildTree(self, genrator):
 
         # 递归结束判断
         # 1.
-        classList = [data[-1] for data in trainSet]
-        counter = Counter(classList)
-        if len(counter.values()) == 1:  # 正常结局
-            return counter.most_common().pop(0)[0]
-        if len(trainSet[0]) == 2 and len(set([data[0] for data in trainSet])) == 1:  # 错误数据的结局
-            return counter.most_common().pop(0)[0]
+        labelInfo=next(genrator("labelInfo"))
+        lenLabelInfo=len(labelInfo.most_common())
+        if lenLabelInfo == 1:  # 正常结局
+            return labelInfo.most_common()[0][0]
+        elif lenLabelInfo == 2 and len(next(genrator("rows"))) <= 0:  # 错误数据的结局
+            return labelInfo.most_common()[0][0]
         # 2.
 
         minSelect = (0, "")
         # 初始越大越好
         minValue = 100
         # 遍历条件,选择最优切分条件与最优切分点
-        for indx in range(len(trainSet[0]) - 1):
-            lst = [data[indx] for data in trainSet]
-            featureSet = set(lst)
-
-            del lst
-            featureDict = {}
-            # 获取分割的分类
-            for feature in featureSet:
-                tempLst = [data[-1] for data in trainSet if data[indx] == feature]
-                featureDict[feature] = tempLst
-
-            del featureSet
+        for indx in range(next(genrator("lenF"))):
+            featureInfo=next(genrator("featureInfo"))
             # 选择最小的分类
             minFeatureValue = 1.1
             minFeature = ''
@@ -158,13 +158,12 @@ class CARTTree(object):
                 del tempDict
                 return self.predict(tree, testLst)
 
-    #行/列
-    def makeGenrator(self,rows,featurs,featurNames):
-        trainSetTemp=self.trainSet
-        def generator(choice,index=None):
-            trainSet=trainSetTemp
+    # 行/列
+    def makeGenrator(self, rows, featurs, featurNames):
+        trainSetTemp = self.trainSet
 
-
+        def generator(choice, index=None):
+            trainSet = trainSetTemp
 
     def getDumpData(self):
         data = dict()

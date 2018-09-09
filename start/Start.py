@@ -3,6 +3,7 @@ import sys
 import os
 import numpy as np
 import treePlotter
+from collections import Counter
 
 # curPath = os.path.abspath(os.path.dirname(__file__))
 # rootPath = os.path.split(curPath)[0]
@@ -34,12 +35,9 @@ startTime = datetime.datetime.now()  # 起始时间
 # import distance.Distance
 # import dataVisualization.DataVisualization
 # import TextClassification.textStart
-dic={}
-if "ff" not in dic:
-    dic["ff"]=1
-else:
-    dic["ff"]+=1
-
+lst=[5,2,2,2,2,2,2,1,1,1,5,1,1,1,1,5,5]
+c=Counter(lst)
+print(c.most_common())
 ###################################################################################################################
 endTime = datetime.datetime.now()  # 终止时间
 
