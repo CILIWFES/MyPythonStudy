@@ -6,25 +6,28 @@ from DecisionTree import Genrator
 class CARTTree(object):
     def __init__(self):
         self.tree = {}
-        self.classList = []
+        self.classNameIndex = {}
+        self.classIndex = {}
         self.isDiscrete = True
         self.function = None
         self.trainSet = None
 
     def makeGenrator(self, featureIndexReal, featuresValue, beforGenerator):
-        rows = None
-        featurs = None
         if beforGenerator is None:
             rows = [i for i in range(len(self.trainSet))]
             featurs = [i for i in range(len(self.trainSet[0]) - 1)]
+            return Genrator.makeGenrator(self.trainSet, rows, featurs, featureIndexReal, featuresValue, beforGenerator)
 
-        Genrator.makeGenrator(self.trainSet, rows, featurs, featureIndexReal, featuresValue, beforGenerator)
+        left = Genrator.makeGenrator(self.trainSet, None, None, featureIndexReal, featuresValue, True, beforGenerator)
+        right = Genrator.makeGenrator(self.trainSet, None, None, featureIndexReal, featuresValue, False, beforGenerator)
+        return left, right
 
     # 主函数入口
     def train(self, trainSet, classList, isDiscrete):
         self.trainSet = trainSet
         # 选择要处理的数据类型,并对离散型数据进行转化
-        self.classList = {k: indx for indx, k in enumerate(classList)}
+        self.classNameIndex = {k: indx for indx, k in enumerate(classList)}
+        self.classIndex = {indx: k for indx, k in enumerate(classList)}
         self.selectFunction(isDiscrete)
         rootGenrator = self.makeGenrator(None, None, None)
         self.tree = self.buildTree(rootGenrator)
@@ -37,20 +40,16 @@ class CARTTree(object):
 
     # 离散型 计算Gini基尼指数
     # lst1与ls2皆为预测项
-    def Discrete(self, lst1, lst2):
-        # calculate freqency
-        fre1 = list(Counter(lst1).values())
-        fre2 = list(Counter(lst2).values())
-
-        size1 = float(len(lst1))
-        size2 = float(len(lst2))
+    def Discrete(self, choiceCnt, unionCnt):
+        size1 = sum(choiceCnt)
+        size2 = sum(unionCnt)
         result1 = 1
         result2 = 1
 
-        for item in fre1:
+        for item in choiceCnt:
             result1 -= pow(item / float(size1), 2)
 
-        for item in fre2:
+        for item in unionCnt:
             result2 -= pow(item / float(size2), 2)
 
         result1 = result1 * size1 / float(size1 + size2)
@@ -82,7 +81,7 @@ class CARTTree(object):
         lenLabelInfo = len(labelInfo.most_common())
         if lenLabelInfo == 1:  # 正常结局
             return labelInfo.most_common()[0][0]
-        elif lenLabelInfo == 2 and len(next(genrator("rows"))) <= 0:  # 错误数据的结局
+        elif lenLabelInfo >= 2 and len(next(genrator("featurs"))) <= 0:  # 错误数据的结局
             return labelInfo.most_common()[0][0]
         # 2.
 
@@ -91,49 +90,65 @@ class CARTTree(object):
         minValue = 100
         # 遍历条件,选择最优切分条件与最优切分点
         for indx in range(next(genrator("lenF"))):
-            featureInfo = next(genrator("featureInfo"))
+            featureInfo = next(genrator("featureInfo", indx))
             # 选择最小的分类
-            minFeatureValue = 1.1
-            minFeature = ''
-            for feature, lst in featureDict.items():
-                otherList = [data[-1] for data in trainSet if data[indx] != feature]
-                returnValue = self.function(lst, otherList)
+            minFeatureValue = 999
+            minFeature = ""
+            otherFeatures = []
+            # 遍历子集
+            for key, item in featureInfo.items():
+
+                lst = [v for k, v in item.items() if k is not 'all']
+                # 拼接其他字符串
+                otherLst = self.MergeOtherDict(featureInfo, key)
+                returnValue = self.function(lst, otherLst)
+
                 if returnValue < minFeatureValue:
                     minFeatureValue = returnValue
-                    minFeature = feature
+                    if minFeature:
+                        otherFeatures.append(minFeature)
+                    minFeature = key
+                else:
+                    otherFeatures.append(key)
+
             if minFeatureValue < minValue:
                 minValue = minFeatureValue
-                minSelect = (indx, minFeature, list(set([data[indx] for data in trainSet if data[indx] != minFeature])))
-
-        leftLst = []
-        rightLst = []
-        # 下面要针对切分点进行切分
-        for indx in range(len(trainSet)):
-            # 切分时最好能把最优切分特征列给删除
-            temp = trainSet[indx][:]
-            featureTemp = temp[minSelect[0]]
-            del temp[minSelect[0]]
-            if featureTemp == minSelect[1]:
-                leftLst.append(temp)
-            else:
-                rightLst.append(temp)
-
-        featureName = classSet[minSelect[0]]
-        classSet = classSet[:]
-        del classSet[minSelect[0]]
+                realFeatureIndex = next(genrator('getF', indx))
+                minSelect = (realFeatureIndex, self.classIndex[realFeatureIndex], minFeature, otherFeatures)
 
         # 建立tree,放入最优节点
         # 递归左节点
         # 递归右节点
-        tree = {featureName: {minSelect[1]: self.buildTree(leftLst, classSet),
-                              str(minSelect[2]): self.buildTree(rightLst, classSet)}}
+        try:
+            left, right = self.makeGenrator(minSelect[0], minSelect[2], genrator)
+        except:
+            a=2
+
+        tree = {minSelect[1]: {minSelect[2]: self.buildTree(left),
+                                   str(minSelect[3]): self.buildTree(right)}}
+
+
         return tree
+
+    # 合并其他字典key,基尼系数
+    def MergeOtherDict(self, featureInfo, key):
+        otherDic = {}
+        for otherKey, otherItem in featureInfo.items():
+            if otherKey is not key:
+                for itemKey, item in otherItem.items():
+
+                    if itemKey is not 'all':
+                        if itemKey in otherDic:
+                            otherDic[itemKey] += item
+                        else:
+                            otherDic[itemKey] = item
+        return [v for k, v in otherDic.items()]
 
     def predict(self, tree, testLst):
         tempLst = list(tree.items())[0]
         rootName = tempLst[0]
         childDict = tempLst[1]
-        indx = self.classList[rootName]
+        indx = self.classNameIndex[rootName]
         del rootName
         value = str(testLst[indx])
         if value in childDict:
@@ -158,20 +173,13 @@ class CARTTree(object):
                 del tempDict
                 return self.predict(tree, testLst)
 
-    # 行/列
-    def makeGenrator(self, rows, featurs, featurNames):
-        trainSetTemp = self.trainSet
-
-        def generator(choice, index=None):
-            trainSet = trainSetTemp
-
     def getDumpData(self):
         data = dict()
         data['tree'] = self.tree
-        data['classList'] = self.classList
+        data['classList'] = self.classNameIndex
         return data
 
     def loadDumpData(self, data):
         self.tree = data['tree']
-        self.classList = data['classList']
+        self.classNameIndex = data['classList']
         return self

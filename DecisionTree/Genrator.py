@@ -2,22 +2,23 @@ from collections import Counter
 
 
 # 二维数组,类别索引字典,  行/列,
-def makeGenrator(trainSet, rows, featurs, featureIndexReal, featuresValue, beforGenerator=None):
+def makeGenrator(trainSet, rows, featurs, featureIndexReal, featuresValue,isLeft, beforGenerator=None):
     # 不为空表示数组即将拆分
-    featursInfoTemp = {}
+    featursInfo={}
     if beforGenerator is not None:
-        featursInfoTemp = next(beforGenerator("next"))
-        featursInfo = featursInfoTemp
-
-        if featureIndexReal in featursInfo:
-            rows = next(beforGenerator("rows"))
+        featursInfo = next(beforGenerator("next"))
+        rows = next(beforGenerator("rows"))
+        if isLeft:
             rows = [row for row in rows if trainSet[row][featureIndexReal] is featuresValue]
+        else:
+            rows = [row for row in rows if trainSet[row][featureIndexReal] is not featuresValue]
 
-            featurs = next(beforGenerator("featurs"))
-            featurs = [featur for featur in featurs if featur is not featureIndexReal]
+        featurs = next(beforGenerator("featurs"))[:]
+        #删除自身结点
+        featurs.remove(featureIndexReal)
 
     # 创造迭代器
-    def generator(choice, data1, data2):
+    def generator(choice, data1=None, data2=None):
         labelInfo = None
         if choice is "lenR":  # 获取行的长度
             yield len(rows)
