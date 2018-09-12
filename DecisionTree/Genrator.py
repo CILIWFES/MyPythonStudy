@@ -6,17 +6,14 @@ def makeGenrator(trainSet, rows, featurs, featureIndexReal, featuresValue,isLeft
     # 不为空表示数组即将拆分
     featursInfo={}
     if beforGenerator is not None:
-        featursInfo = next(beforGenerator("next"))
         rows = next(beforGenerator("rows"))
         if isLeft:
             rows = [row for row in rows if trainSet[row][featureIndexReal] is featuresValue]
         else:
             rows = [row for row in rows if trainSet[row][featureIndexReal] is not featuresValue]
-
         featurs = next(beforGenerator("featurs"))[:]
         #删除自身结点
         featurs.remove(featureIndexReal)
-
     # 创造迭代器
     def generator(choice, data1=None, data2=None):
         labelInfo = None

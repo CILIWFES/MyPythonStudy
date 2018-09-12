@@ -81,53 +81,47 @@ class CARTTree(object):
         lenLabelInfo = len(labelInfo.most_common())
         if lenLabelInfo == 1:  # 正常结局
             return labelInfo.most_common()[0][0]
-        elif lenLabelInfo >= 2 and len(next(genrator("featurs"))) <= 0:  # 错误数据的结局
+        elif len(next(genrator("featurs"))) <= 0 or (len(next(genrator("featurs"))) ==1 and len(next(genrator("featureInfo",0)))==1):  # 错误数据的结局
             return labelInfo.most_common()[0][0]
         # 2.
-
-        minSelect = (0, "")
+        minSelect = None
         # 初始越大越好
-        minValue = 100
+        minValue = 999
         # 遍历条件,选择最优切分条件与最优切分点
         for indx in range(next(genrator("lenF"))):
             featureInfo = next(genrator("featureInfo", indx))
             # 选择最小的分类
             minFeatureValue = 999
-            minFeature = ""
             otherFeatures = []
+            minFeatureTemp = ""
+            minFeature = ""
             # 遍历子集
             for key, item in featureInfo.items():
-
                 lst = [v for k, v in item.items() if k is not 'all']
                 # 拼接其他字符串
                 otherLst = self.MergeOtherDict(featureInfo, key)
                 returnValue = self.function(lst, otherLst)
-
                 if returnValue < minFeatureValue:
                     minFeatureValue = returnValue
-                    if minFeature:
-                        otherFeatures.append(minFeature)
-                    minFeature = key
+                    if minFeatureTemp:
+                        otherFeatures.append(minFeatureTemp)
+                    minFeatureTemp = key
                 else:
                     otherFeatures.append(key)
 
             if minFeatureValue < minValue:
                 minValue = minFeatureValue
+                minFeature = minFeatureTemp
                 realFeatureIndex = next(genrator('getF', indx))
                 minSelect = (realFeatureIndex, self.classIndex[realFeatureIndex], minFeature, otherFeatures)
 
         # 建立tree,放入最优节点
         # 递归左节点
         # 递归右节点
-        try:
-            left, right = self.makeGenrator(minSelect[0], minSelect[2], genrator)
-        except:
-            a=2
+        left, right = self.makeGenrator(minSelect[0], minSelect[2], genrator)
 
         tree = {minSelect[1]: {minSelect[2]: self.buildTree(left),
-                                   str(minSelect[3]): self.buildTree(right)}}
-
-
+                               str(minSelect[3]): self.buildTree(right)}}
         return tree
 
     # 合并其他字典key,基尼系数
