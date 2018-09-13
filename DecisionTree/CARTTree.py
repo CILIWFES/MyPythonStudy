@@ -1,6 +1,5 @@
-from collections import Counter
 from math import pow
-from DecisionTree import Genrator
+from DecisionTree.DataBean import DataBean
 
 
 class CARTTree(object):
@@ -12,14 +11,14 @@ class CARTTree(object):
         self.function = None
         self.trainSet = None
 
-    def makeGenrator(self, featureIndexReal, featuresValue, beforGenerator):
-        if beforGenerator is None:
+    def makeDataBean(self, featureIndexReal, featuresValue, beforDataBean):
+        if beforDataBean is None:
             rows = [i for i in range(len(self.trainSet))]
             featurs = [i for i in range(len(self.trainSet[0]) - 1)]
-            return Genrator.makeGenrator(self.trainSet, rows, featurs, featureIndexReal, featuresValue, beforGenerator)
+            return DataBean(self.trainSet, rows, featurs, -1, -1)
 
-        left = Genrator.makeGenrator(self.trainSet, None, None, featureIndexReal, featuresValue, True, beforGenerator)
-        right = Genrator.makeGenrator(self.trainSet, None, None, featureIndexReal, featuresValue, False, beforGenerator)
+        left = DataBean(self.trainSet, None, None, featureIndexReal, featuresValue, True, beforDataBean)
+        right = DataBean(self.trainSet, None, None, featureIndexReal, featuresValue, False, beforDataBean)
         return left, right
 
     # 主函数入口
@@ -29,8 +28,8 @@ class CARTTree(object):
         self.classNameIndex = {k: indx for indx, k in enumerate(classList)}
         self.classIndex = {indx: k for indx, k in enumerate(classList)}
         self.selectFunction(isDiscrete)
-        rootGenrator = self.makeGenrator(None, None, None)
-        self.tree = self.buildTree(rootGenrator)
+        rootDataBean = self.makeDataBean(None, None, None)
+        self.tree = self.buildTree(rootDataBean)
 
     def selectFunction(self, isDiscrete):
         if isDiscrete:
@@ -73,23 +72,23 @@ class CARTTree(object):
         result2 = pow(result2 / float(len(lst2)), 0.5)
         return result1 + result2
 
-    def buildTree(self, genrator):
+    def buildTree(self, dataBean:DataBean):
 
         # 递归结束判断
         # 1.
-        labelInfo = next(genrator("labelInfo"))
+        labelInfo = dataBean.getLabelInfo()
         lenLabelInfo = len(labelInfo.most_common())
         if lenLabelInfo == 1:  # 正常结局
             return labelInfo.most_common()[0][0]
-        elif len(next(genrator("featurs"))) <= 0 or (len(next(genrator("featurs"))) ==1 and len(next(genrator("featureInfo",0)))==1):  # 错误数据的结局
+        elif len(dataBean.featurs) <= 0 or (len(dataBean.featurs) ==1 and len(dataBean.featureInfo(-1))==1):  # 错误数据的结局
             return labelInfo.most_common()[0][0]
         # 2.
         minSelect = None
         # 初始越大越好
         minValue = 999
         # 遍历条件,选择最优切分条件与最优切分点
-        for indx in range(next(genrator("lenF"))):
-            featureInfo = next(genrator("featureInfo", indx))
+        for indx in range(dataBean.lenFeaturs()):
+            featureInfo = dataBean.featureInfo(indx)
             # 选择最小的分类
             minFeatureValue = 999
             otherFeatures = []
@@ -112,13 +111,16 @@ class CARTTree(object):
             if minFeatureValue < minValue:
                 minValue = minFeatureValue
                 minFeature = minFeatureTemp
-                realFeatureIndex = next(genrator('getF', indx))
+                realFeatureIndex = dataBean.getFeature(indx)
                 minSelect = (realFeatureIndex, self.classIndex[realFeatureIndex], minFeature, otherFeatures)
 
         # 建立tree,放入最优节点
         # 递归左节点
         # 递归右节点
-        left, right = self.makeGenrator(minSelect[0], minSelect[2], genrator)
+        left, right = self.makeDataBean(minSelect[0], minSelect[2], dataBean)
+        dataBean.choiceFeatureIndx=minSelect[0]
+        dataBean.choiceFeatureValue=minSelect[2]
+        dataBean.choiceFeatureOtherValue=minSelect[3]
 
         tree = {minSelect[1]: {minSelect[2]: self.buildTree(left),
                                str(minSelect[3]): self.buildTree(right)}}

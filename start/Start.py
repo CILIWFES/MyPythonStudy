@@ -41,10 +41,6 @@ startTime = datetime.datetime.now()  # 起始时间
 #
 #     lst = [tempdic[key]+=1 for k,v in dic.items() for key, item in v.items() if key is not 'all' and tempdic in tempdic]
 #     print(lst)
-lst = {'xx': {"all": 54, "1": 3, "2": 51}, 'X1': {'all': 45, '1': 1, "2": 0, '3': 44}}
-print(lst['xx'])
-print({v:k for k,v in lst['xx'].items()})
-
 ###################################################################################################################
 endTime = datetime.datetime.now()  # 终止时间
 
