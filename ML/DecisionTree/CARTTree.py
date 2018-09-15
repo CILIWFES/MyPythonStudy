@@ -1,5 +1,5 @@
 from math import pow
-from ML.DecisionTree import DataBean
+from ML.DecisionTree.DataBean import DataBean
 
 
 class CARTTree(object):
