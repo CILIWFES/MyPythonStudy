@@ -10,7 +10,8 @@ class CARTTree(object):
         self.isDiscrete = True
         self.function = None
         self.trainSet = None
-        self.rootDataBean = None
+        # 最小参数值
+        self.aMaxTree = {}
 
     def makeDataBean(self, featureIndexReal, featuresValue, featuresOtherValue, beforDataBean):
         if beforDataBean is None:
@@ -23,14 +24,76 @@ class CARTTree(object):
         return left, right
 
     # 主函数入口
-    def train(self, trainSet, classList, isDiscrete):
+    def train(self, trainSet, classList, isDiscrete, coefficient):
         self.trainSet = trainSet
         # 选择要处理的数据类型,并对离散型数据进行转化
         self.classNameIndex = {k: indx for indx, k in enumerate(classList)}
         self.classIndex = {indx: k for indx, k in enumerate(classList)}
         self.selectFunction(isDiscrete)
-        self.rootDataBean = self.makeDataBean(None, None, None, None)
-        self.tree = self.buildTree(self.rootDataBean)
+        rootDataBean = self.makeDataBean(None, None, None, None)
+
+        dataBean: DataBean = self.buildTree(rootDataBean)
+
+        self.prune(dataBean, coefficient)
+        self.aMaxTree = self.make_aMaxTree(dataBean, classList)
+
+        self.tree = self.makeTree(dataBean, classList)
+
+    def makeTree(self, dataBean: DataBean, classList):
+        if dataBean.choiceFeatureIndex is None:
+            return dataBean.getLabelInfo().most_common().pop(0)[0]
+
+        realIndex = dataBean.choiceFeatureIndex
+        label = classList[realIndex]
+        tree = {label: {dataBean.choiceFeatureDataBean.featuresValue:
+                            self.makeTree(dataBean.choiceFeatureDataBean, classList),
+                        str(dataBean.choiceFeatureOtherDataBean.featuresValue):
+                            self.makeTree(dataBean.choiceFeatureOtherDataBean, classList)}}
+        return tree
+
+    def make_aMaxTree(self, dataBean: DataBean, classList):
+        if dataBean.choiceFeatureIndex is None:
+            return "{0:.3f}".format(dataBean.aMax)
+
+        realIndex = dataBean.choiceFeatureIndex
+        label: str = classList[realIndex]
+        label = label + ":" + "{0:.3f}".format(dataBean.aMax)  # 保留小数点后三位
+        aMaxTree = {label: {dataBean.choiceFeatureDataBean.featuresValue:
+                                self.make_aMaxTree(dataBean.choiceFeatureDataBean, classList),
+                            str(dataBean.choiceFeatureOtherDataBean.featuresValue):
+                                self.make_aMaxTree(dataBean.choiceFeatureOtherDataBean, classList)}}
+        return aMaxTree
+
+    # 减枝核心算法
+    # aMax为减枝最重要的判断标志,为了方便看aMax对减枝的影响,我们将aMax回传,构建treeA表示aMax树
+    def prune(self, dataBean: DataBean, coefficient):
+        if dataBean.choiceFeatureIndex is None:
+            labelInfo = dataBean.getLabelInfo()
+            return self.caluteCT(labelInfo), 1
+        # 查询左节点(核心)
+        giniLeft, leftCnt = self.prune(dataBean.choiceFeatureDataBean, coefficient)
+        # 查询右节点(核心)
+        giniRight, rightCnt = self.prune(dataBean.choiceFeatureOtherDataBean, coefficient)
+        aMaxTree = {}
+        Ct = giniLeft + giniRight
+        cnt = leftCnt + rightCnt
+        labelInfo = dataBean.getLabelInfo()
+        Cta = self.caluteCT(labelInfo)  # 计算减枝后的CT值
+
+        # 是否减枝判断
+        aMax = Cta - Ct / float(cnt - 1)
+        dataBean.aMax = aMax
+        if coefficient > aMax:
+            dataBean.choiceFeatureIndex = None  # 减枝
+            del dataBean.choiceFeatureDataBean
+            del dataBean.choiceFeatureOtherDataBean
+            return Cta, 1
+        else:  # 不减枝
+            return Ct, cnt
+
+    def caluteCT(self, labelInfo):
+        lst = [v for k, v in labelInfo.items() if k is not 'all']
+        return float(sum(lst)) * self.Gini(lst)  # 获取Gini系数*N+当前惩罚系数
 
     def selectFunction(self, isDiscrete):
         if isDiscrete:
@@ -38,22 +101,21 @@ class CARTTree(object):
         else:
             self.function = self.Continuous
 
+    def Gini(self, lst):
+        size = sum(lst)
+        result = 1
+        for item in lst:
+            result -= pow(item / float(size), 2)
+        return result
+
     # 离散型 计算Gini基尼指数
     # lst1与ls2皆为预测项
+    # 传入标签数组,已经按照条件子集划分过了
     def Discrete(self, choiceCnt, unionCnt):
-        size1 = sum(choiceCnt)
+        size1 = sum(choiceCnt)  # 已经计算了频率了
         size2 = sum(unionCnt)
-        result1 = 1
-        result2 = 1
-
-        for item in choiceCnt:
-            result1 -= pow(item / float(size1), 2)
-
-        for item in unionCnt:
-            result2 -= pow(item / float(size2), 2)
-
-        result1 = result1 * size1 / float(size1 + size2)
-        result2 = result2 * size2 / float(size1 + size2)
+        result1 = self.Gini(choiceCnt) * size1 / float(size1 + size2)
+        result2 = self.Gini(unionCnt) * size2 / float(size1 + size2)
         return result2 + result1
 
     # 连续型,计算方差
@@ -80,11 +142,10 @@ class CARTTree(object):
         labelInfo = dataBean.getLabelInfo()
         lenLabelInfo = len(labelInfo.most_common())
         if lenLabelInfo == 1:  # 正常结局
-            return labelInfo.most_common()[0][0]
-        elif len(dataBean.featurs) <= 0 or (
-                len(dataBean.featurs) == 1 and len(dataBean.featureInfo(-1)) == 1):  # 错误数据的结局
-            return labelInfo.most_common()[0][0]
-        # 2.
+            return dataBean
+        elif len(dataBean.features) <= 0 or (
+                len(dataBean.features) == 1 and len(dataBean.featureInfo(-1)) == 1):  # 错误数据的结局
+            return dataBean
         minSelect = None
         # 初始越大越好
         minValue = 999
@@ -120,13 +181,11 @@ class CARTTree(object):
         # 递归左节点
         # 递归右节点
         left, right = self.makeDataBean(minSelect[0], minSelect[2], minSelect[3], dataBean)
-        dataBean.choiceFeatureIndx = minSelect[0]
-        dataBean.choiceFeatureValue = left
-        dataBean.choiceFeatureOtherValue = right
+        dataBean.choiceFeatureIndex = minSelect[0]
+        dataBean.choiceFeatureDataBean = self.buildTree(left)
+        dataBean.choiceFeatureOtherDataBean = self.buildTree(right)
 
-        tree = {minSelect[1]: {minSelect[2]: self.buildTree(left),
-                               str(minSelect[3]): self.buildTree(right)}}
-        return tree
+        return dataBean
 
     # 合并其他字典key,基尼系数
     def MergeOtherDict(self, featureInfo, key):
@@ -134,7 +193,6 @@ class CARTTree(object):
         for otherKey, otherItem in featureInfo.items():
             if otherKey is not key:
                 for itemKey, item in otherItem.items():
-
                     if itemKey is not 'all':
                         if itemKey in otherDic:
                             otherDic[itemKey] += item
@@ -174,10 +232,12 @@ class CARTTree(object):
     def getDumpData(self):
         data = dict()
         data['tree'] = self.tree
+        data['aMaxTree'] = self.aMaxTree
         data['classList'] = self.classNameIndex
         return data
 
     def loadDumpData(self, data):
         self.tree = data['tree']
+        self.aMaxTree = data['aMaxTree']
         self.classNameIndex = data['classList']
         return self

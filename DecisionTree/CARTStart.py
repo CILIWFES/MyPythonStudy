@@ -56,14 +56,14 @@ if not os.path.exists(CARTSavePath):  # 不是文件夹
     dataSet = loadDataSet(CARTLoadPath)
     labels = ["age", "revenue", "student", "credit"]
     print("训练数据")
-    dtree.train(dataSet,labels,True)
+    dtree.train(dataSet,labels,True,0)#最后一个是减枝参数
     print("持久化数据")
     # saveDump(CARTSavePath, dtree.getDumpData())
     print("正在生成树")
+    tp.createPlot(dtree.aMaxTree)
     tp.createPlot(dtree.tree)
 else:
     print("读取持久化")
     dtree.loadDumpData(readDump(CARTSavePath))
 
-tp.createPlot(dtree.tree)
 # print("预测结果为:", dtree.predict(dtree.tree, [0, 0, 1, 1]))
