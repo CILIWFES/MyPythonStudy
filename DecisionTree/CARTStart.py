@@ -58,7 +58,7 @@ if not os.path.exists(CARTSavePath):  # 不是文件夹
     print("训练数据")
     dtree.train(dataSet,labels,True)
     print("持久化数据")
-    saveDump(CARTSavePath, dtree.getDumpData())
+    # saveDump(CARTSavePath, dtree.getDumpData())
     print("正在生成树")
     tp.createPlot(dtree.tree)
 else:
