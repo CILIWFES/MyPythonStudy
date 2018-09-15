@@ -1,13 +1,12 @@
-from DecisionTree.ID3Tree import *
 import os
 import pickle
 # 树与分类结构的可视化
-import treePlotter.treePlotter as tp
+from ML import TreePlotter as tp
 
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0] + "/Support/chapter03"
-ID3LoadPath = rootPath + "/dataset.dat"
-ID3SavePath = rootPath + "/ID3Tree.dat"
+C45LoadPath = rootPath + "/dataset.dat"
+C45SavePath = rootPath + "/C45Tree.dat"
 
 
 dataSet = [['1000', '1', '0', '0', '0', 'no'],
@@ -27,6 +26,7 @@ dataSet = [['1000', '1', '0', '0', '0', 'no'],
            ['3000', '3', '0', '0', '0', 'no'],
            ]
 labels = ['gz', 'age', 'GZ', 'FZ', 'XD']
+
 def loadDataSet(path):
     fp = open(path, "rb")  # 读取文件内容
     content = fp.read()
@@ -50,21 +50,21 @@ def readDump(path):
     return data
 
 
-dtree = ID3Tree()
-if not os.path.exists(ID3SavePath):  # 不是文件夹
+dtree = C45DTree()
+if not os.path.exists(C45SavePath):  # 不是文件夹
     print("生成数据")
-    dtree.dataSet = loadDataSet(ID3LoadPath)
+    dtree.dataSet = loadDataSet(C45LoadPath)
     dtree.labels = ["age", "revenue", "student", "credit"]
-    # dtree.dataSet = dataSet
-    # dtree.labels = labels
+    # dtree.dataSet=dataSet
+    # dtree.labels=labels
     print("训练数据")
     dtree.train()
     print("持久化数据")
-    saveDump(ID3SavePath, dtree.getDumpData())
+    saveDump(C45SavePath, dtree.getDumpData())
 
 else:
     print("读取持久化")
-    dtree.loadDumpData(readDump(ID3SavePath))
+    dtree.loadDumpData(readDump(C45SavePath))
 
 
 print("正在生成树")

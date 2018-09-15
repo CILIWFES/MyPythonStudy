@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from TextClassification.Nbayes_lib import *
 import pickle
 import gc
 import sys

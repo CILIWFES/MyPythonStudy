@@ -72,7 +72,7 @@ ax.plot(x, y, color='r')
 plt.show()
 
 # 树与分类结构的可视化
-import treePlotter.treePlotter as tp
+from ML import TreePlotter as tp
 
 myTree = {'root': {0: 'lef node', 1: {'level 2': {0: 'leaf node', 1: 'leaf node'}},
                    2: {'lead 2': {0: 'leaf node', 1: 'leaf node'}}}}

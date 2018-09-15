@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
-import numpy as np
 import pickle
-import sys
 import gc
-from TextClassification.kNN_lib import *
+from ML.TextClassification.kNN import *
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0] + "/Support/chapter02"
 
