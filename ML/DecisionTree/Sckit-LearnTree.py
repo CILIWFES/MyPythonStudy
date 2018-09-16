@@ -20,8 +20,9 @@ siny = np.sin(x)    # 给出y与x的基本关系
 X = np.mat(x).T
 y = siny+np.random.rand(1,len(siny))*1.5	# 加入噪声的点集
 y = y.tolist()[0]
-# Fit regression model
-clf = DecisionTreeRegressor(max_depth=3)
+# 通过x与y的对应关系
+# 生成连续形决策树
+clf = DecisionTreeRegressor(max_depth=4)
 clf.fit(X, y)
 
 # Predict
