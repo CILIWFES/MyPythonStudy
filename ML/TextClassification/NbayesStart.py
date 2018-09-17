@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import pickle
 import gc
+import os
 import sys
+from ML.TextClassification.Nbayes import NBayes
 
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0] + "/Support/chapter02"
