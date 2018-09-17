@@ -1,4 +1,6 @@
 import datetime
+import random
+from collections import Counter
 
 # curPath = os.path.abspath(os.path.dirname(__file__))
 # rootPath = os.path.split(curPath)[0]
@@ -36,6 +38,14 @@ startTime = datetime.datetime.now()  # 起始时间
 #
 #     lst = [tempdic[key]+=1 for k,v in dic.items() for key, item in v.items() if key is not 'all' and tempdic in tempdic]
 #     print(lst)
+
+a=[0,2,5,4,8]
+a.extend(range(5))
+print(a)
+b=[5,4,7,4,5,5,9]
+# print(list(set(a).difference(set(b))))
+c=Counter(b)
+print(random.randint(0,1))
 ###################################################################################################################
 endTime = datetime.datetime.now()  # 终止时间
 
