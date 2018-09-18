@@ -45,7 +45,7 @@ print(a)
 b=[5,4,7,4,5,5,9]
 # print(list(set(a).difference(set(b))))
 c=Counter(b)
-print(random.randint(0,1))
+print(dict(c))
 ###################################################################################################################
 endTime = datetime.datetime.now()  # 终止时间
 

@@ -4,6 +4,7 @@ import gc
 import os
 import sys
 from ML.TextClassification.Nbayes import NBayes
+from ML.JudgeMethod.JudegeMethod import JudegeMethod
 
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0] + "/Support/chapter02"
@@ -78,3 +79,4 @@ from sklearn import metrics
 
 #classification_report函数构建了一个文本报告，用于展示主要的分类metrics
 print(metrics.classification_report(testBunch.label, retClassList))
+print(JudegeMethod().Judege(testBunch.label, retClassList))
