@@ -8,6 +8,8 @@ curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0] + "/Support/chapter03"
 CARTLoadPath = rootPath + "/dataset.dat"
 CARTSavePath = rootPath + "/CARTTree.dat"
+
+
 #
 # dataSet = [['1000', '1', '0', '0', '0', 'no'],
 #            ['2000', '1', '0', '0', '1', 'no'],
@@ -56,7 +58,9 @@ if not os.path.exists(CARTSavePath):  # 不是文件夹
     dataSet = loadDataSet(CARTLoadPath)
     labels = ["age", "revenue", "student", "credit"]
     print("训练数据")
-    dtree.train(dataSet,labels,True,0)#最后一个是减枝参数
+    classSet = [item[-1] for item in dataSet]
+    dataSet = [item[0:-2] for item in dataSet]
+    dtree.train(dataSet, classSet, labels, True, 0)  # 最后一个是减枝参数
     print("持久化数据")
     # saveDump(CARTSavePath, dtree.getDumpData())
     print("正在生成树")

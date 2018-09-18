@@ -5,6 +5,12 @@ from prettytable import PrettyTable
 
 class JudegeMethod:
     def __init__(self):
+        # +---------------+----------+
+        #         | 预测正例 | 预测反例 |
+        # +---------------+----------+
+        # 实际正例| TP(真正例) | FN(假反例) |
+        # 实际反例| FP(假正例) | TN(真反例) |
+        # +---------------+----------+
         # 这些是坐标
         self.TP = 0  # 真正例,当前正确预测
         self.FP = 1  # 假正例,当前错误预测
@@ -18,7 +24,7 @@ class JudegeMethod:
         if len(predictions) is not len(realClass):
             raise Exception("预测值与实际值长度不一")
         dic = {}
-        for index in range(len(realClass)):
+        for index in range(len(predictions)):
             realName = realClass[index]
             preName = predictions[index]
 
@@ -28,41 +34,55 @@ class JudegeMethod:
                 dic[preName] = [0, 0, 0, 0, 0, 0]
 
             if realName == preName:
-                dic[realName][self.TP] += 1  # 正确,真正例+1
+                dic[preName][self.TP] += 1  # 正确,真正例+1
             elif realName != preName:
-                dic[realName][self.FP] += 1  # 错误,假正例+1
-                dic[preName][self.TN] += 1  # 其他错误,真反例
+                dic[preName][self.FP] += 1  # 其他错误,假正例
+                dic[realName][self.FN] += 1  # 错误,假反例+1
 
         allCnt = len(predictions)
         precisions = []
         recalls = []
 
         for k, lst in dic.items():  # 计算假反例
-            lst[self.FN] = allCnt - sum(lst)  # 假反例,其他正确预测
-            lst[self.PRECISION] = lst[self.TP] / (float(lst[self.TP] + lst[self.TN]))
-            lst[self.RECALL] = lst[self.TP] / (float(lst[self.TP] + lst[self.FP]))  # 假反例,其他正确预测
+            lst[self.TN] = allCnt - sum(lst)  # 假反例,其他正确预测
+            lst[self.PRECISION] = lst[self.TP] / (float(lst[self.TP] + lst[self.FP]))
+            lst[self.RECALL] = lst[self.TP] / (float(lst[self.TP] + lst[self.FN]))  # 假反例,其他正确预测
             precisions.append(lst[self.PRECISION])
             recalls.append(lst[self.RECALL])
         self.dataDict = dic
         self.printData()
-        self.showFigure(predictions, recalls)
+        return self.showFigure(precisions, recalls)
 
     def printData(self):
-        table = PrettyTable(["类名", "查准率", "查全率"])
+        table = PrettyTable(["类名", "查准率", "查全率", "测试数量"])
 
         table.align["查准率"] = "c"  # 以name字段左对齐
         table.align["查全率"] = "c"  # 以name字段左对齐
+        table.align["测试数量"] = "c"  # 以name字段左对齐
         table.padding_width = 2  # 填充宽度
+        p_avg = 0
+        r_avg = 0
+        file_all = 0
         for k, lst in self.dataDict.items():  # 计算假反例
-            table.add_row([k, "{0:.2f}".format(lst[self.PRECISION]), "{0:.2f}".format(lst[self.RECALL])])
+            table.add_row([k, "{0:.2f}".format(lst[self.PRECISION]), "{0:.2f}".format(lst[self.RECALL]),
+                           lst[self.TP] + lst[self.FN]])
+            p_avg += lst[self.PRECISION]
+            r_avg += lst[self.RECALL]
+            file_all += lst[self.TP] + lst[self.FN]
+        dataLen = len(self.dataDict)
+        table.add_row(
+            ["avg", "{0:.3f}".format(p_avg / float(dataLen)), "{0:.3f}".format(r_avg / float(dataLen)), file_all])
         print(table)
-
+    #绘制散点图
     def showFigure(self, precisions, recalls):
         # 绘图
         fig = plt.figure()
         # 把画布分成1行1列 1x1块,当前画布处于第1块
         ax = fig.add_subplot(1, 1, 1)
         # 绘制散点图x=查全,y=查准
-        ax.scatter(recalls, precisions, s=10, color='blue', marker='o')
+        ax.scatter(recalls, precisions, s=10, color='red', marker='o')
         # 绘制图线
-        ax.plot(recalls, precisions, color='r')
+        # ax.plot(recalls, precisions, color='r')
+        x=np.linspace(0,1,100)
+        ax.plot(x, x, color='g')
+        return plt

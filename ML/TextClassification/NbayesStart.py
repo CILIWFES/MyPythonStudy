@@ -79,4 +79,4 @@ from sklearn import metrics
 
 #classification_report函数构建了一个文本报告，用于展示主要的分类metrics
 print(metrics.classification_report(testBunch.label, retClassList))
-print(JudegeMethod().Judege(testBunch.label, retClassList))
+JudegeMethod().Judege(retClassList,testBunch.label).show()

@@ -16,52 +16,54 @@ class CARTTree(object):
     def makeDataBean(self, featureIndexReal, featuresValue, featuresOtherValue, beforDataBean):
         if beforDataBean is None:
             rows = [i for i in range(len(self.trainSet))]
-            featurs = [i for i in range(len(self.trainSet[0]) - 1)]
-            return DataBean(self.trainSet, rows, featurs, -1, -1)
+            featurs = [i for i in range(len(self.trainSet[0]))]
+            return DataBean(self.trainSet, self.classSet, rows, featurs, -1, -1)
 
-        left = DataBean(self.trainSet, None, None, featureIndexReal, featuresValue, True, beforDataBean)
-        right = DataBean(self.trainSet, None, None, featureIndexReal, featuresOtherValue, False, beforDataBean)
+        left = DataBean(self.trainSet, self.classSet, None, None, featureIndexReal, featuresValue, True, beforDataBean)
+        right = DataBean(self.trainSet, self.classSet, None, None, featureIndexReal, featuresOtherValue, False,
+                         beforDataBean)
         return left, right
 
     # 主函数入口
-    def train(self, trainSet, classList, isDiscrete, coefficient):
+    def train(self, trainSet, classSet, labelList, isDiscrete, coefficient):
         self.trainSet = trainSet
+        self.classSet = classSet
         # 选择要处理的数据类型,并对离散型数据进行转化
-        self.classNameIndex = {k: indx for indx, k in enumerate(classList)}
-        self.classIndex = {indx: k for indx, k in enumerate(classList)}
+        self.classNameIndex = {k: indx for indx, k in enumerate(labelList)}
+        self.classIndex = {indx: k for indx, k in enumerate(labelList)}
         self.selectFunction(isDiscrete)
         rootDataBean = self.makeDataBean(None, None, None, None)
 
         dataBean: DataBean = self.buildTree(rootDataBean)
 
         self.prune(dataBean, coefficient)
-        self.aMaxTree = self.make_aMaxTree(dataBean, classList)
+        self.aMaxTree = self.make_aMaxTree(dataBean, labelList)
+        self.tree = self.makeTree(dataBean, labelList)
 
-        self.tree = self.makeTree(dataBean, classList)
 
-    def makeTree(self, dataBean: DataBean, classList):
+    def makeTree(self, dataBean: DataBean, labelList):
         if dataBean.choiceFeatureIndex is None:
             return dataBean.getLabelInfo().most_common().pop(0)[0]
 
         realIndex = dataBean.choiceFeatureIndex
-        label = classList[realIndex]
+        label = labelList[realIndex]
         tree = {label: {dataBean.choiceFeatureDataBean.featuresValue:
-                            self.makeTree(dataBean.choiceFeatureDataBean, classList),
+                            self.makeTree(dataBean.choiceFeatureDataBean, labelList),
                         str(dataBean.choiceFeatureOtherDataBean.featuresValue):
-                            self.makeTree(dataBean.choiceFeatureOtherDataBean, classList)}}
+                            self.makeTree(dataBean.choiceFeatureOtherDataBean, labelList)}}
         return tree
 
-    def make_aMaxTree(self, dataBean: DataBean, classList):
+    def make_aMaxTree(self, dataBean: DataBean, labelList):
         if dataBean.choiceFeatureIndex is None:
             return "{0:.3f}".format(dataBean.aMax)
 
         realIndex = dataBean.choiceFeatureIndex
-        label: str = classList[realIndex]
+        label: str = labelList[realIndex]
         label = label + ":" + "{0:.3f}".format(dataBean.aMax)  # 保留小数点后三位
         aMaxTree = {label: {dataBean.choiceFeatureDataBean.featuresValue:
-                                self.make_aMaxTree(dataBean.choiceFeatureDataBean, classList),
+                                self.make_aMaxTree(dataBean.choiceFeatureDataBean, labelList),
                             str(dataBean.choiceFeatureOtherDataBean.featuresValue):
-                                self.make_aMaxTree(dataBean.choiceFeatureOtherDataBean, classList)}}
+                                self.make_aMaxTree(dataBean.choiceFeatureOtherDataBean, labelList)}}
         return aMaxTree
 
     # 减枝核心算法
@@ -144,7 +146,7 @@ class CARTTree(object):
         if lenLabelInfo == 1:  # 正常结局
             return dataBean
         elif len(dataBean.features) <= 0 or (
-                len(dataBean.features) == 1 and len(dataBean.featureInfo(-1)) == 1):  # 错误数据的结局
+                len(dataBean.features) == 1 and len(dataBean.featureInfo(0)) == 1):  # 错误数据的结局
             return dataBean
         minSelect = None
         # 初始越大越好
