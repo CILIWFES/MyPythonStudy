@@ -74,6 +74,7 @@ class DataBean:
             if item in retDic:
                 retDic[item]["all"] += 1
             else:
+
                 retDic[item] = {"all": 1}
 
             if label in retDic[item]:
