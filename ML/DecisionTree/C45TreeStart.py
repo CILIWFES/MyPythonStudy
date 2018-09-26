@@ -1,7 +1,7 @@
 import os
 import pickle
 # 树与分类结构的可视化
-from ML import TreePlotter as tp
+import TreePlotter as tp
 
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0] + "/Support/chapter03"

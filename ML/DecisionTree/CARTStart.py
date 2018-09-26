@@ -2,7 +2,7 @@ from ML.DecisionTree.CARTTree import *
 import os
 import pickle
 # 树与分类结构的可视化
-from ML.TreePlotter import treePlotter as tp
+from TreePlotter import treePlotter as tp
 
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0] + "/Support/chapter03"
